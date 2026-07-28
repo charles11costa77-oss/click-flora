@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Click&Flora — Identifique suas plantas</title>
+<meta name="theme-color" content="#2F4A38">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest:#38452E;
+    --forest-deep:#232B1C;
+    --leaf:#5E6E45;
+    --cream:#F6F1E4;
+    --paper:#EAE0C6;
+    --honey:#B5652E;
+    --honey-deep:#8C4A20;
+    --ink:#26261C;
+    --line: rgba(35,43,28,0.16);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito Sans', sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+    overflow-x:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  .app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    background:var(--cream);
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:18px 20px 10px;
+  }
+  .topbar .mark{
+    width:34px;height:34px;
+    border-radius:50%;
+    background:var(--honey);
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;
+    flex:none;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.12);
+  }
+  .topbar .name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:19px;
+    color:var(--forest-deep);
+  }
+  .topbar .name b{ color: var(--honey-deep); }
+
+  /* ---------- Screens ---------- */
+  .screen{
+    flex:1;
+    display:none;
+    flex-direction:column;
+    padding:8px 20px 100px;
+    animation: fadeIn .35s ease;
+  }
+  .screen.active{ display:flex; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- Home ---------- */
+  .hero{
+    margin-top:14px;
+    background: linear-gradient(160deg, var(--forest) 0%, var(--forest-deep) 100%);
+    border-radius: 8px;
+    padding: 30px 24px 26px;
+    border: 1px solid rgba(246,241,228,0.14);
+    color: var(--cream);
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute;
+    right:-30px; top:-30px;
+    width:150px;height:150px;
+    background: radial-gradient(circle, rgba(181,101,46,0.28) 0%, transparent 70%);
+  }
+  .hero .eyebrow{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color: var(--honey);
+    font-weight:700;
+    margin-bottom:8px;
+  }
+  .hero h1{
+    font-size:28px;
+    line-height:1.15;
+    margin:0 0 12px;
+  }
+  .hero p{
+    font-size:15px;
+    line-height:1.5;
+    color: rgba(251,246,237,0.85);
+    margin:0 0 22px;
+    max-width:34ch;
+  }
+  .btn-primary{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background: var(--honey);
+    color: var(--forest-deep);
+    border:none;
+    font-family:'Nunito Sans', sans-serif;
+    font-weight:800;
+    font-size:15.5px;
+    padding:14px 22px;
+    border-radius: 999px;
+    cursor:pointer;
+    box-shadow: 0 6px 16px rgba(227,168,87,0.35);
+    transition: transform .15s ease;
+  }
+  .btn-primary:active{ transform: scale(0.97); }
+
+  .section-label{
+    font-size:12.5px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color: var(--leaf);
+    margin:28px 2px 12px;
+  }
+
+  .tip-card{
+    background: var(--paper);
+    border-radius: 4px;
+    padding:16px 18px;
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+    margin-bottom:10px;
+    border-left: 3px solid var(--honey-deep);
+    border-top: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .tip-card .ico{ font-size:20px; line-height:1; margin-top:2px; }
+  .tip-card .txt strong{ display:block; font-size:14.5px; margin-bottom:2px; color:var(--forest-deep); }
+  .tip-card .txt span{ font-size:13.5px; color:#5a6152; line-height:1.4; }
+
+  /* ---------- Upload / Camera ---------- */
+  .capture-box{
+    margin-top:18px;
+    border: 1.5px solid var(--forest);
+    border-radius: 6px;
+    background: var(--paper);
+    aspect-ratio: 3/4;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    text-align:center;
+    padding:24px;
+    position:relative;
+    overflow:hidden;
+  }
+  .capture-box img{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover;
+  }
+  .capture-box .placeholder-ico{
+    font-size:40px;
+  }
+  .capture-box .placeholder-txt{
+    font-size:14.5px;
+    color:#5a6152;
+    max-width:26ch;
+  }
+  .capture-actions{
+    display:flex;
+    gap:12px;
+    margin-top:20px;
+  }
+  .btn-secondary{
+    flex:1;
+    background: var(--cream);
+    border: 1.5px solid var(--forest);
+    color: var(--forest-deep);
+    font-family:'Nunito Sans', sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    padding:13px 10px;
+    border-radius: 999px;
+    cursor:pointer;
+  }
+  .btn-full{
+    margin-top:14px;
+    width:100%;
+    background: var(--forest);
+    color: var(--cream);
+    border:none;
+    font-family:'Nunito Sans', sans-serif;
+    font-weight:800;
+    font-size:15.5px;
+    padding:15px;
+    border-radius: 999px;
+    cursor:pointer;
+    opacity:0.4;
+    pointer-events:none;
+    transition: opacity .2s ease;
+  }
+  .btn-full.ready{ opacity:1; pointer-events:auto; }
+
+  /* ---------- Resultado ---------- */
+  .result-photo{
+    margin-top:16px;
+    width:100%;
+    aspect-ratio: 4/3;
+    border-radius: 6px;
+    background: var(--paper) center/cover;
+    display:flex;align-items:center;justify-content:center;
+    color:#8a927f;
+    font-size:14px;
+  }
+  .specimen-card{
+    margin-top:-30px;
+    margin-left:14px;
+    margin-right:14px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--honey-deep);
+    border-radius: 6px;
+    padding:18px 20px;
+    box-shadow: 0 10px 26px rgba(31,48,38,0.12);
+    position:relative;
+    z-index:2;
+  }
+  .specimen-card .eyebrow{
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color: var(--honey-deep);
+    font-weight:800;
+  }
+  .specimen-card h2{
+    margin:4px 0 2px;
+    font-size:22px;
+    color: var(--forest-deep);
+  }
+  .specimen-card .sci{
+    font-style:italic;
+    font-size:14px;
+    color:#6b7263;
+    margin-bottom:14px;
+  }
+  .meta-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .meta-pill{
+    background: var(--paper);
+    border-radius: 999px;
+    padding:6px 12px;
+    font-size:12.5px;
+    font-weight:700;
+    color: var(--forest-deep);
+  }
+  .placeholder-note{
+    margin-top:16px;
+    font-size:13px;
+    color:#8a927f;
+    line-height:1.5;
+    padding:0 4px;
+  }
+
+  /* ---------- Bottom nav ---------- */
+  .bottomnav{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    max-width:480px;
+    margin:0 auto;
+    background: var(--cream);
+    border-top: 1px solid var(--line);
+    display:flex;
+    padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+    gap:6px;
+  }
+  .navbtn{
+    flex:1;
+    background:none;
+    border:none;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    padding:8px 4px;
+    font-family:'Nunito Sans', sans-serif;
+    font-size:11.5px;
+    font-weight:700;
+    color:#8a927f;
+    cursor:pointer;
+    border-radius:12px;
+  }
+  .navbtn .ico{ font-size:19px; }
+  .navbtn.active{ color: var(--forest-deep); background: var(--paper); }
+
+  input[type=file]{ display:none; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="mark">🐝</div>
+    <div class="name">Click<b>&</b>Flora</div>
+  </div>
+
+  <!-- HOME -->
+  <section class="screen active" id="screen-home">
+    <div class="hero">
+      <div class="eyebrow">Olá, sou a Flora</div>
+      <h1>Aponte a câmera<br>e descubra a planta</h1>
+      <p>Tire uma foto e eu te conto o nome, a origem e curiosidades de qualquer planta que encontrar.</p>
+      <button class="btn-primary" onclick="goTo('upload')">📷 Identificar planta</button>
+    </div>
+
+    <div class="section-label">Como funciona</div>
+    <div class="tip-card">
+      <div class="ico">📸</div>
+      <div class="txt"><strong>1. Fotografe</strong><span>Folhas, flores ou a planta inteira — de perto funciona melhor.</span></div>
+    </div>
+    <div class="tip-card">
+      <div class="ico">🔍</div>
+      <div class="txt"><strong>2. Identificação</strong><span>Reconheço a espécie automaticamente em segundos.</span></div>
+    </div>
+    <div class="tip-card">
+      <div class="ico">🌿</div>
+      <div class="txt"><strong>3. Conheça</strong><span>Veja nome, origem e uma curiosidade sobre ela.</span></div>
+    </div>
+  </section>
+
+  <!-- UPLOAD / CAMERA -->
+  <section class="screen" id="screen-upload">
+    <div class="section-label" style="margin-top:16px;">Nova identificação</div>
+    <div class="capture-box" id="captureBox">
+      <div class="placeholder-ico">🌱</div>
+      <div class="placeholder-txt">Tire uma foto nítida da planta, de preferência com boa luz</div>
+      <img id="previewImg" style="display:none;">
+    </div>
+    <div class="capture-actions">
+      <button class="btn-secondary" onclick="document.getElementById('cameraInput').click()">📷 Câmera</button>
+      <button class="btn-secondary" onclick="document.getElementById('galleryInput').click()">🖼️ Galeria</button>
+    </div>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment">
+    <input type="file" id="galleryInput" accept="image/*">
+    <button class="btn-full" id="identifyBtn">Identificar esta planta</button>
+  </section>
+
+  <!-- RESULTADO -->
+  <section class="screen" id="screen-resultado">
+    <div class="result-photo" id="resultPhoto">foto enviada</div>
+
+    <div id="loadingState" style="text-align:center; padding:30px 10px;">
+      <div style="font-size:32px;">🔍</div>
+      <div style="margin-top:8px; font-weight:700; color:var(--forest-deep);">Identificando sua planta...</div>
+    </div>
+
+    <div class="specimen-card" id="specimenCard" style="display:none;">
+      <div class="eyebrow">Identificação</div>
+      <h2 id="resultName">[Nome da planta]</h2>
+      <div class="sci" id="resultSci">[Nome científico]</div>
+      <div class="meta-row" id="resultMeta"></div>
+    </div>
+
+    <div id="errorState" style="display:none; text-align:center; padding:30px 14px;">
+      <div style="font-size:32px;">🌵</div>
+      <div style="margin-top:8px; font-weight:700; color:var(--forest-deep);" id="errorText">Não consegui identificar essa planta.</div>
+      <div style="margin-top:6px; font-size:13.5px; color:#6b7263;">Tente outra foto, de preferência com boa luz e mais de perto.</div>
+    </div>
+
+    <button class="btn-full ready" style="margin-top:20px;" onclick="resetFlow()">Identificar outra planta</button>
+  </section>
+
+  <div class="bottomnav">
+    <button class="navbtn active" data-screen="home" onclick="goTo('home')"><span class="ico">🏠</span>Início</button>
+    <button class="navbtn" data-screen="upload" onclick="goTo('upload')"><span class="ico">📷</span>Identificar</button>
+  </div>
+</div>
+
+<script>
+let currentImageBase64 = null;
+
+function goTo(screen){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  document.querySelectorAll('.navbtn').forEach(b => b.classList.remove('active'));
+  const navBtn = document.querySelector('.navbtn[data-screen="' + screen + '"]');
+  if(navBtn) navBtn.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function handleFile(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    currentImageBase64 = e.target.result;
+    const img = document.getElementById('previewImg');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.querySelector('#captureBox .placeholder-ico').style.display='none';
+    document.querySelector('#captureBox .placeholder-txt').style.display='none';
+    document.getElementById('identifyBtn').classList.add('ready');
+  }
+  reader.readAsDataURL(file);
+}
+
+document.getElementById('cameraInput').addEventListener('change', e => handleFile(e.target.files[0]));
+document.getElementById('galleryInput').addEventListener('change', e => handleFile(e.target.files[0]));
+
+document.getElementById('identifyBtn').addEventListener('click', identifyPlant);
+
+async function identifyPlant(){
+  if(!currentImageBase64) return;
+
+  goTo('resultado');
+  document.getElementById('resultPhoto').style.backgroundImage = 'url(' + currentImageBase64 + ')';
+  document.getElementById('resultPhoto').textContent = '';
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('specimenCard').style.display = 'none';
+  document.getElementById('errorState').style.display = 'none';
+
+  try {
+    const response = await fetch('/api/plantnet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64: currentImageBase64 })
+    });
+    const data = await response.json();
+
+    document.getElementById('loadingState').style.display = 'none';
+
+    if(!response.ok || !data.found){
+      document.getElementById('errorText').textContent = data.error || 'Não consegui identificar essa planta.';
+      document.getElementById('errorState').style.display = 'block';
+      return;
+    }
+
+    const commonName = (data.commonNames && data.commonNames[0]) || data.genus || 'Planta identificada';
+    document.getElementById('resultName').textContent = commonName;
+    document.getElementById('resultSci').textContent = data.scientificName || '';
+
+    const metaEl = document.getElementById('resultMeta');
+    metaEl.innerHTML = '';
+    if(data.family){
+      metaEl.innerHTML += '<div class="meta-pill">🌿 ' + data.family + '</div>';
+    }
+    document.getElementById('specimenCard').style.display = 'block';
+
+  } catch(err){
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorText').textContent = 'Erro de conexão. Tente novamente.';
+    document.getElementById('errorState').style.display = 'block';
+  }
+}
+
+function resetFlow(){
+  currentImageBase64 = null;
+  const img = document.getElementById('previewImg');
+  img.style.display='none';
+  img.src='';
+  document.querySelector('#captureBox .placeholder-ico').style.display='block';
+  document.querySelector('#captureBox .placeholder-txt').style.display='block';
+  document.getElementById('identifyBtn').classList.remove('ready');
+  goTo('upload');
+}
+</script>
+</body>
+</html>
