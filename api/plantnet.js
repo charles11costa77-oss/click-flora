@@ -78,4 +78,4 @@ export default async function handler(req, res) {
     console.error('Erro PlantNet:', err);
     return res.status(500).json({ error: 'Erro interno ao identificar a planta' });
   }
-}
+} 
