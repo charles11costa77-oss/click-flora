@@ -43,7 +43,7 @@ export default async function handler(req, res) {
 
     const body = Buffer.concat(formParts);
 
-    const plantnetUrl = `https://my-api.plantnet.org/v2/identify/all?api-key=${apiKey}`;
+    const plantnetUrl = `https://my-api.plantnet.org/v2/identify/all?api-key=${apiKey}&lang=pt`;
 
     const response = await fetch(plantnetUrl, {
       method: 'POST',
