@@ -415,19 +415,32 @@
 (function(){
   const splash = document.getElementById('splashScreen');
   const video = document.getElementById('splashVideo');
+  const minDisplay = 600; // tempo mínimo visível, mesmo se o vídeo falhar
+  const startTime = Date.now();
   let hidden = false;
   function hideSplash(){
     if(hidden) return;
     hidden = true;
-    splash.style.transition = 'opacity .4s ease';
-    splash.style.opacity = '0';
-    setTimeout(() => { splash.style.display = 'none'; }, 400);
+    const elapsed = Date.now() - startTime;
+    const wait = Math.max(0, minDisplay - elapsed);
+    setTimeout(() => {
+      splash.style.transition = 'opacity .4s ease';
+      splash.style.opacity = '0';
+      setTimeout(() => { splash.style.display = 'none'; }, 400);
+    }, wait);
   }
   if(video){
     video.addEventListener('ended', hideSplash);
     video.addEventListener('error', hideSplash);
+    // Alguns navegadores mobile exigem chamada explícita de play(), mesmo com o atributo autoplay
+    const playPromise = video.play();
+    if(playPromise && playPromise.catch){
+      playPromise.catch(() => { hideSplash(); });
+    }
+  } else {
+    hideSplash();
   }
-  // Fallback: caso o vídeo não termine ou não carregue por algum motivo
+  // Fallback: caso o vídeo trave ou não dispare nenhum evento
   setTimeout(hideSplash, 4000);
 })();
 </script>
