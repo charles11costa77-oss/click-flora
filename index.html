@@ -328,6 +328,9 @@
 </style>
 </head>
 <body>
+<div id="splashScreen" style="position:fixed; inset:0; background:#0a0e0a; z-index:9999; display:flex; align-items:center; justify-content:center;">
+  <video id="splashVideo" src="click-flora-splash.mp4" autoplay muted playsinline style="width:60vw; max-width:320px; aspect-ratio:1/1; object-fit:contain;"></video>
+</div>
 <div class="app">
 
   <div class="topbar">
@@ -408,6 +411,26 @@
   </div>
 </div>
 
+<script>
+(function(){
+  const splash = document.getElementById('splashScreen');
+  const video = document.getElementById('splashVideo');
+  let hidden = false;
+  function hideSplash(){
+    if(hidden) return;
+    hidden = true;
+    splash.style.transition = 'opacity .4s ease';
+    splash.style.opacity = '0';
+    setTimeout(() => { splash.style.display = 'none'; }, 400);
+  }
+  if(video){
+    video.addEventListener('ended', hideSplash);
+    video.addEventListener('error', hideSplash);
+  }
+  // Fallback: caso o vídeo não termine ou não carregue por algum motivo
+  setTimeout(hideSplash, 4000);
+})();
+</script>
 <script>
 const PLANTS_DB = {
   "Epipremnum aureum": {"nome": "Jiboia", "origem": "Ilhas Salomão (Sudeste Asiático/Oceania)", "resumo": "Trepadeira de folhas em formato de coração, uma das plantas de interior mais populares do mundo por ser fácil de cuidar."},
