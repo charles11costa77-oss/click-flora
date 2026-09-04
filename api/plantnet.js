@@ -3,25 +3,45 @@
 // Configurar no painel do Vercel: Settings > Environment Variables > PLANTNET_API_KEY
 
 export default async function handler(req, res) {
+  const apiLangGlobal = req.body?.lang === 'en' ? 'en' : 'pt';
+  const MSG = {
+    pt: {
+      method: 'Método não permitido',
+      noKey: 'Chave PlantNet não configurada no servidor',
+      noImage: 'Imagem não enviada',
+      badFormat: 'Formato de imagem inválido',
+      notFound: 'Não foi possível identificar a planta',
+      internal: 'Erro interno ao identificar a planta',
+    },
+    en: {
+      method: 'Method not allowed',
+      noKey: 'PlantNet key not configured on the server',
+      noImage: 'No image sent',
+      badFormat: 'Invalid image format',
+      notFound: 'Could not identify the plant',
+      internal: 'Internal error identifying the plant',
+    }
+  }[apiLangGlobal];
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método não permitido' });
+    return res.status(405).json({ error: MSG.method });
   }
 
   const apiKey = process.env.PLANTNET_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'Chave PlantNet não configurada no servidor' });
+    return res.status(500).json({ error: MSG.noKey });
   }
 
   try {
     const { imageBase64, lang } = req.body;
     if (!imageBase64) {
-      return res.status(400).json({ error: 'Imagem não enviada' });
+      return res.status(400).json({ error: MSG.noImage });
     }
     const apiLang = lang === 'en' ? 'en' : 'pt';
 
     const matches = imageBase64.match(/^data:(image\/\w+);base64,(.+)$/);
     if (!matches) {
-      return res.status(400).json({ error: 'Formato de imagem inválido' });
+      return res.status(400).json({ error: MSG.badFormat });
     }
     const mimeType = matches[1];
     const buffer = Buffer.from(matches[2], 'base64');
@@ -58,7 +78,7 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       return res.status(response.status).json({
-        error: data.message || 'Não foi possível identificar a planta',
+        error: data.message || MSG.notFound,
       });
     }
 
@@ -77,6 +97,6 @@ export default async function handler(req, res) {
     });
   } catch (err) {
     console.error('Erro PlantNet:', err);
-    return res.status(500).json({ error: 'Erro interno ao identificar a planta' });
+    return res.status(500).json({ error: MSG.internal });
   }
 } 
