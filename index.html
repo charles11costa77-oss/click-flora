@@ -56,6 +56,31 @@
     gap:10px;
     padding:18px 20px 10px;
   }
+  .lang-switch{
+    margin-left:auto;
+    display:flex;
+    gap:4px;
+    background:var(--paper);
+    border-radius:20px;
+    padding:3px;
+  }
+  .lang-btn{
+    border:none;
+    background:transparent;
+    padding:4px 6px;
+    border-radius:16px;
+    font-size:18px;
+    line-height:1;
+    opacity:0.4;
+    cursor:pointer;
+    filter:grayscale(100%);
+    transition:opacity .15s, filter .15s;
+  }
+  .lang-btn.active{
+    background:var(--forest-deep);
+    opacity:1;
+    filter:grayscale(0%);
+  }
   .topbar .mark{
     width:34px;height:34px;
     border-radius:50%;
@@ -338,6 +363,10 @@
   <div class="topbar">
     <div class="mark">🐝</div>
     <div class="name">Click<b>&</b>Flora</div>
+    <div class="lang-switch">
+      <button class="lang-btn" data-lang="pt" onclick="applyLanguage('pt')">🇧🇷</button>
+      <button class="lang-btn" data-lang="en" onclick="applyLanguage('en')">🇺🇸</button>
+    </div>
   </div>
 
   <!-- HOME -->
@@ -989,7 +1018,656 @@ const PLANTS_DB = {
   "Cattleya intermedia": {"nome": "Orquídea-cattleya-intermédia", "origem": "Brasil (litoral Sul e Sudeste)", "resumo": "Orquídea nativa brasileira de flores rosadas e labelo ondulado, comum em regiões litorâneas."}
 };
 
+const PLANTS_DB_EN = {
+  "Epipremnum aureum": {"nome": "Pothos", "origem": "Solomon Islands (Southeast Asia/Oceania)", "resumo": "Heart-shaped-leaf vine, one of the most popular houseplants in the world for being easy to care for."},
+  "Sansevieria trifasciata": {"nome": "Snake Plant", "origem": "Tropical West Africa", "resumo": "Stiff, upright leaves, extremely hardy and popularly associated with spiritual protection in Brazil."},
+  "Chlorophytum comosum": {"nome": "Spider Plant", "origem": "South Africa", "resumo": "Trailing plant with green-and-white striped leaves, known for producing baby plantlets at the tips of its runners."},
+  "Zamioculcas zamiifolia": {"nome": "ZZ Plant", "origem": "East Africa", "resumo": "Thick, glossy leaves, extremely tolerant of low water and low light."},
+  "Monstera deliciosa": {"nome": "Swiss Cheese Plant", "origem": "Central America (Mexico and Panama)", "resumo": "Famous for its large leaves with natural splits, widely used in interior decor."},
+  "Ficus lyrata": {"nome": "Fiddle-Leaf Fig", "origem": "Tropical West Africa", "resumo": "Indoor tree with large violin-shaped leaves, a symbol of modern decor."},
+  "Spathiphyllum wallisii": {"nome": "Peace Lily", "origem": "Central and South America", "resumo": "Elegant white flowers over dark green foliage; tolerates low-light environments."},
+  "Aloe vera": {"nome": "Aloe Vera", "origem": "Arabian Peninsula", "resumo": "Succulent with fleshy leaves popularly used for medicinal and cosmetic purposes."},
+  "Echeveria elegans": {"nome": "Mexican Snowball", "origem": "Mexico", "resumo": "Rosette-shaped succulent with bluish leaves, widely used in succulent gardens."},
+  "Crassula ovata": {"nome": "Jade Plant", "origem": "South Africa and Mozambique", "resumo": "Succulent with round, fleshy leaves, popularly associated with prosperity."},
+  "Kalanchoe blossfeldiana": {"nome": "Flaming Katy", "origem": "Madagascar", "resumo": "Succulent with intense, colorful blooms, common in pots and full-sun gardens."},
+  "Aglaonema commutatum": {"nome": "Chinese Evergreen", "origem": "Southeast Asia", "resumo": "Variegated ornamental foliage, tolerant of low-light indoor environments."},
+  "Philodendron hederaceum": {"nome": "Heartleaf Philodendron", "origem": "Central and South America", "resumo": "Heart-shaped-leaf vine, one of the easiest houseplants to grow."},
+  "Peperomia obtusifolia": {"nome": "Baby Rubber Plant", "origem": "Central and South America", "resumo": "Compact plant with thick, glossy leaves, ideal for small indoor pots."},
+  "Calathea orbifolia": {"nome": "Calathea", "origem": "Bolivia", "resumo": "Ornamental foliage with striking striped patterns, prefers humid, shaded environments."},
+  "Maranta leuconeura": {"nome": "Prayer Plant", "origem": "Brazil (Atlantic Forest)", "resumo": "Known for folding its leaves up at night, as if in prayer."},
+  "Pilea peperomioides": {"nome": "Chinese Money Plant", "origem": "China (Yunnan region)", "resumo": "Round, flat leaves on thin stems, very popular in minimalist decor."},
+  "Tradescantia zebrina": {"nome": "Inch Plant", "origem": "Mexico and Central America", "resumo": "Trailing or creeping plant with purple-and-silver striped leaves."},
+  "Chamaedorea elegans": {"nome": "Parlor Palm", "origem": "Mexico and Central America", "resumo": "Small indoor palm, elegant and slow-growing."},
+  "Nephrolepis exaltata": {"nome": "Boston Fern", "origem": "Tropical regions of the Americas", "resumo": "Lush, arching foliage, a classic on porches and shaded areas."},
+  "Adiantum raddianum": {"nome": "Maidenhair Fern", "origem": "South America (including Brazil)", "resumo": "Delicate fern with fine fronds, likes humidity and shade."},
+  "Cyperus alternifolius": {"nome": "Umbrella Papyrus", "origem": "Madagascar", "resumo": "Ornamental aquatic plant with leaves arranged in an umbrella shape."},
+  "Ficus elastica": {"nome": "Rubber Plant", "origem": "India and Southeast Asia", "resumo": "Large, thick, glossy leaves; once used to produce natural rubber."},
+  "Schefflera arboricola": {"nome": "Dwarf Umbrella Tree", "origem": "Taiwan", "resumo": "Fan-shaped foliage, easy to care for and common indoors."},
+  "Hedera helix": {"nome": "English Ivy", "origem": "Europe", "resumo": "Classic vine with lobed leaves, used both in pots and vertical gardens."},
+  "Plectranthus verticillatus": {"nome": "Swedish Ivy", "origem": "South Africa", "resumo": "Trailing plant with round leaves, very common in hanging pots in Brazil."},
+  "Tanacetum coccineum": {"nome": "Painted Daisy", "origem": "Caucasus", "resumo": "Daisy-like flowers in bright colors, also traditionally used as a natural insecticide."},
+  "Acanthocereus tetragonus": {"nome": "Fairy Castle Cactus", "origem": "Central America and the Caribbean", "resumo": "Branching columnar cactus, popular in succulent arrangements for its architectural shape."},
+  "Rosa chinensis": {"nome": "China Rose", "origem": "China", "resumo": "One of the most widely grown flowers in the world, a symbol of beauty in gardens everywhere."},
+  "Phalaenopsis amabilis": {"nome": "Moth Orchid", "origem": "Southeast Asia and Oceania", "resumo": "Orchid with long-lasting, elegant blooms, one of the most popular for home growing."},
+  "Saintpaulia ionantha": {"nome": "African Violet", "origem": "Tanzania and Kenya", "resumo": "Compact plant with purple or white flowers, a classic on windowsills and indoors."},
+  "Begonia rex": {"nome": "Rex Begonia", "origem": "India (Assam)", "resumo": "Ornamental foliage with vivid patterns and colors, grown more for its leaves than its flowers."},
+  "Anthurium andraeanum": {"nome": "Flamingo Flower", "origem": "Colombia and Ecuador", "resumo": "Glossy, heart-shaped blooms, widely used in arrangements and interior decor."},
+  "Dieffenbachia seguine": {"nome": "Dumb Cane", "origem": "Central and South America", "resumo": "Large variegated foliage; the sap is toxic if ingested, hence its common name."},
+  "Cereus jamacaru": {"nome": "Mandacaru Cactus", "origem": "Northeastern Brazil (Caatinga)", "resumo": "Columnar cactus, a symbol of northeastern Brazilian vegetation, adapted to long droughts."},
+  "Euphorbia milii": {"nome": "Crown of Thorns", "origem": "Madagascar", "resumo": "Thorny shrub with small colorful flowers, hardy and easy to grow."},
+  "Buxus sempervirens": {"nome": "Common Boxwood", "origem": "Europe and North Africa", "resumo": "Small-leaved shrub widely used in topiary and formal gardens."},
+  "Rhododendron simsii": {"nome": "Azalea", "origem": "China and Southeast Asia", "resumo": "Shrub with lush blooms, traditional in gardens and decorative pots."},
+  "Camellia japonica": {"nome": "Camellia", "origem": "Japan, China and Korea", "resumo": "Shrub with large, delicate flowers, highly prized in ornamental gardens."},
+  "Hibiscus rosa-sinensis": {"nome": "Hibiscus", "origem": "East Asia", "resumo": "Tropical shrub with large, showy flowers, very common in Brazilian gardens."},
+  "Bougainvillea glabra": {"nome": "Bougainvillea", "origem": "South America (Brazil)", "resumo": "Vine with intensely colorful bracts, widely used on fences and walls."},
+  "Ocimum basilicum": {"nome": "Basil", "origem": "Southeast Asia and India", "resumo": "Aromatic herb widely used in cooking, easy to grow in pots."},
+  "Mentha spicata": {"nome": "Spearmint", "origem": "Europe and Asia", "resumo": "Fast-growing aromatic herb, popular in teas and recipes."},
+  "Salvia rosmarinus": {"nome": "Rosemary", "origem": "Mediterranean region", "resumo": "Aromatic shrub used in cooking, also popularly associated with protection."},
+  "Lavandula angustifolia": {"nome": "English Lavender", "origem": "Mediterranean region", "resumo": "Shrub with aromatic purple flowers, known for its calming effect and use in perfumery."},
+  "Schlumbergera truncata": {"nome": "Christmas Cactus", "origem": "Brazil (Atlantic Forest, Rio de Janeiro)", "resumo": "Spineless cactus that blooms at year's end, with vivid pendant flowers."},
+  "Dracaena sanderiana": {"nome": "Lucky Bamboo", "origem": "Central Africa", "resumo": "Not a true bamboo, but a dracaena that grows well in water; associated with good luck."},
+  "Syngonium podophyllum": {"nome": "Arrowhead Plant", "origem": "Central and South America", "resumo": "Arrow-shaped-leaf vine, common in hanging pots and indoors."},
+  "Zantedeschia aethiopica": {"nome": "Calla Lily", "origem": "South Africa", "resumo": "Funnel-shaped white flower, a symbol of elegance used in floral arrangements."},
+  "Helianthus annuus": {"nome": "Sunflower", "origem": "North America", "resumo": "Large flower that follows the sun's movement when young, a symbol of joy."},
+  "Leucanthemum vulgare": {"nome": "Oxeye Daisy", "origem": "Europe", "resumo": "Simple flower with white petals and a yellow center, a popular symbol of simplicity and purity."},
+  "Dianthus caryophyllus": {"nome": "Carnation", "origem": "Mediterranean region", "resumo": "Fragrant, long-lasting flower, traditionally used in bouquets and tributes."},
+  "Pelargonium hortorum": {"nome": "Garden Geranium", "origem": "South Africa", "resumo": "Plant with abundant, colorful blooms, widely used in pots and planters."},
+  "Petunia hybrida": {"nome": "Petunia", "origem": "South America", "resumo": "Plant with intense, varied blooms, widely used to add color to gardens and planters."},
+  "Viola tricolor": {"nome": "Wild Pansy", "origem": "Europe", "resumo": "Small flower with striking color combinations, common in winter flower beds."},
+  "Aloe arborescens": {"nome": "Tree Aloe", "origem": "South Africa and Mozambique", "resumo": "Shrubby succulent with orange flowers, a close relative of common aloe."},
+  "Haworthia fasciata": {"nome": "Zebra Plant", "origem": "South Africa", "resumo": "Small succulent with white bands on its leaves, ideal for tabletop pots."},
+  "Sedum morganianum": {"nome": "Burro's Tail", "origem": "Mexico", "resumo": "Trailing succulent with teardrop-shaped leaves, widely used in hanging pots."},
+  "Sempervivum tectorum": {"nome": "Houseleek", "origem": "Europe (alpine region)", "resumo": "Extremely cold-hardy rosette succulent, traditionally grown on rooftops."},
+  "Opuntia ficus-indica": {"nome": "Prickly Pear", "origem": "Mexico", "resumo": "Flat-paddled cactus, used as animal forage and also for human consumption (its fruit)."},
+  "Mammillaria elongata": {"nome": "Lady Finger Cactus", "origem": "Mexico", "resumo": "Small cylindrical cactus that grows in clusters, covered with golden spines."},
+  "Portulaca grandiflora": {"nome": "Moss Rose", "origem": "South America (Brazil and Argentina)", "resumo": "Low-growing plant with colorful flowers that open only under strong sun."},
+  "Bryophyllum pinnatum": {"nome": "Air Plant (Life Plant)", "origem": "Madagascar", "resumo": "Succulent known for growing plantlets along its leaf edges, popularly used in home remedies."},
+  "Kalanchoe daigremontiana": {"nome": "Mother of Thousands", "origem": "Madagascar", "resumo": "Succulent that produces dozens of tiny plantlets along its leaf edges."},
+  "Aeonium arboreum": {"nome": "Tree Aeonium", "origem": "Canary Islands and North Africa", "resumo": "Succulent with flower-like rosettes atop woody stems, highly ornamental."},
+  "Senecio rowleyanus": {"nome": "String of Pearls", "origem": "Africa (Namibia and Angola)", "resumo": "Trailing succulent with bead-like leaves resembling a string of beads."},
+  "Ceropegia woodii": {"nome": "String of Hearts", "origem": "South Africa and Zimbabwe", "resumo": "Trailing plant with heart-shaped leaves, widely used in hanging decor."},
+  "Hoya carnosa": {"nome": "Wax Plant", "origem": "East Asia and Australia", "resumo": "Vine with thick leaves and star-shaped, waxy-looking flowers."},
+  "Rhipsalis baccifera": {"nome": "Mistletoe Cactus", "origem": "Central and South America, Africa", "resumo": "Spineless epiphytic cactus with thin, trailing stems, common in tropical forests."},
+  "Dypsis lutescens": {"nome": "Areca Palm", "origem": "Madagascar", "resumo": "Ornamental palm with feathery fronds, widely used as an indoor room divider."},
+  "Livistona chinensis": {"nome": "Chinese Fan Palm", "origem": "China and Japan", "resumo": "Palm with fan-shaped leaves, common in squares and gardens."},
+  "Roystonea oleracea": {"nome": "Caribbean Royal Palm", "origem": "Caribbean and South America", "resumo": "Tall, majestic palm, widely used along avenues and in large gardens."},
+  "Cocos nucifera": {"nome": "Coconut Palm", "origem": "Southeast Asia (likely origin)", "resumo": "Palm symbolizing the tropical coast, its fruit (coconuts) used in food worldwide."},
+  "Musa paradisiaca": {"nome": "Banana Plant", "origem": "Southeast Asia", "resumo": "Large plant with broad leaves, grown worldwide for its fruit, the banana."},
+  "Citrus limon": {"nome": "Lemon Tree", "origem": "South Asia", "resumo": "Citrus fruit tree, grown in yards and orchards for its tart, aromatic fruit."},
+  "Citrus sinensis": {"nome": "Orange Tree", "origem": "China", "resumo": "Citrus fruit tree of great commercial importance, a symbol of Brazilian orchards."},
+  "Mangifera indica": {"nome": "Mango Tree", "origem": "South Asia (India)", "resumo": "Large fruit tree with a dense canopy, very common in Brazilian backyards."},
+  "Psidium guajava": {"nome": "Guava Tree", "origem": "Central and South America", "resumo": "Small fruit tree whose fruit (guava) is widely used in Brazilian cuisine."},
+  "Carica papaya": {"nome": "Papaya Tree", "origem": "Central America (Mexico and Costa Rica)", "resumo": "Plant with a thin, non-woody stem, grown for its sweet fruit, the papaya."},
+  "Jasminum sambac": {"nome": "Arabian Jasmine", "origem": "South Asia", "resumo": "Shrub with intensely fragrant white flowers, widely used in gardens and teas."},
+  "Plumeria rubra": {"nome": "Frangipani", "origem": "Central America and Mexico", "resumo": "Tree with fragrant, colorful flowers, a symbol of tropical and Hawaiian landscapes."},
+  "Nerium oleander": {"nome": "Oleander", "origem": "Mediterranean region", "resumo": "Ornamental shrub with showy flowers; note that the entire plant is toxic if ingested."},
+  "Tibouchina granulosa": {"nome": "Glory Bush", "origem": "Brazil", "resumo": "Native Brazilian tree known for its intense purple flowers that bloom during Lent."},
+  "Handroanthus chrysotrichus": {"nome": "Golden Trumpet Tree", "origem": "Brazil", "resumo": "Tree symbolic of Brazil, with intense yellow blooms in late winter."},
+  "Handroanthus impetiginosus": {"nome": "Pink Trumpet Tree", "origem": "South America (including Brazil)", "resumo": "Native tree with lush pink-purple blooms, widely used in urban landscaping."},
+  "Delonix regia": {"nome": "Royal Poinciana (Flame Tree)", "origem": "Madagascar", "resumo": "Tree with a wide canopy and intense red-orange blooms, widely used along avenues."},
+  "Strelitzia reginae": {"nome": "Bird of Paradise", "origem": "South Africa", "resumo": "Exotic flower resembling a tropical bird's head, a symbol of sophistication in arrangements."},
+  "Alpinia purpurata": {"nome": "Red Ginger", "origem": "Southeast Asia and the Pacific", "resumo": "Tropical plant with rod-shaped red inflorescences, widely used in tropical gardens."},
+  "Heliconia rostrata": {"nome": "Hanging Lobster Claw", "origem": "South America (including the Amazon)", "resumo": "Tropical plant with pendant, lobster-claw-shaped flowers in vivid red and yellow tones."},
+  "Aechmea fasciata": {"nome": "Silver Vase Bromeliad", "origem": "Brazil", "resumo": "Native bromeliad with silvery leaves and a long-lasting pink inflorescence, widely used in decor."},
+  "Guzmania lingulata": {"nome": "Scarlet Star", "origem": "Central and South America", "resumo": "Bromeliad with vivid center colors, grown as an indoor ornamental plant."},
+  "Vriesea splendens": {"nome": "Flaming Sword", "origem": "Brazil (Amazon)", "resumo": "Bromeliad with striped leaves and a sword-shaped red inflorescence."},
+  "Cattleya labiata": {"nome": "Cattleya Orchid", "origem": "Brazil (Northeast)", "resumo": "Native Brazilian orchid with large, fragrant flowers, considered a floral symbol of the country."},
+  "Dendrobium nobile": {"nome": "Noble Dendrobium", "origem": "South and Southeast Asia", "resumo": "Orchid with long canes bearing multiple flowers per stem, popular among collectors."},
+  "Platycerium bifurcatum": {"nome": "Staghorn Fern", "origem": "Australia and Southeast Asia", "resumo": "Epiphytic fern with antler-shaped fronds, grown mounted on trunks or wooden boards."},
+  "Asplenium nidus": {"nome": "Bird's Nest Fern", "origem": "Tropical regions of Asia, Africa and Australia", "resumo": "Fern with broad fronds arranged in a rosette, resembling a bird's nest."},
+  "Cycas revoluta": {"nome": "Sago Palm", "origem": "Japan", "resumo": "Ancient plant that resembles a palm but is actually related to conifers."},
+  "Cordyline fruticosa": {"nome": "Ti Plant", "origem": "Southeast Asia and the Pacific", "resumo": "Ornamental shrub with colorful leaves in shades of red, pink and green."},
+  "Codiaeum variegatum": {"nome": "Croton", "origem": "Southeast Asia and Pacific islands", "resumo": "Shrub with colorful, varied foliage, widely used in gardens and hedges in Brazil."},
+  "Acalypha wilkesiana": {"nome": "Copperleaf", "origem": "Pacific islands", "resumo": "Shrub with colorful, jagged foliage, widely used as an ornamental hedge."},
+  "Ixora coccinea": {"nome": "Jungle Geranium", "origem": "Southern India and Sri Lanka", "resumo": "Shrub with abundant blooms in shades of red, orange and pink, common in tropical gardens."},
+  "Duranta erecta": {"nome": "Golden Dewdrop", "origem": "Central and South America", "resumo": "Shrub with small blue flowers followed by golden-yellow berries, widely used as a hedge."},
+  "Murraya paniculata": {"nome": "Orange Jasmine", "origem": "Southeast Asia", "resumo": "Shrub widely used as a hedge in Brazil, with fragrant white flowers."},
+  "Araucaria heterophylla": {"nome": "Norfolk Island Pine", "origem": "Norfolk Island (Oceania)", "resumo": "Conifer with a symmetrical, pyramidal canopy, widely used as a decorative Christmas tree."},
+  "Araucaria angustifolia": {"nome": "Paraná Pine", "origem": "Brazil (Southern region)", "resumo": "Native tree symbolizing the Araucaria forest, produces edible pine nuts."},
+  "Ficus benjamina": {"nome": "Weeping Fig", "origem": "South and Southeast Asia, Australia", "resumo": "Ornamental tree with dense foliage, widely used both in gardens and pruned as bonsai."},
+  "Cissus rhombifolia": {"nome": "Grape Ivy", "origem": "South America and the Caribbean", "resumo": "Vine with grapevine-like leaves, hardy and easy to grow indoors."},
+  "Impatiens walleriana": {"nome": "Busy Lizzie", "origem": "East Africa (Tanzania and Mozambique)", "resumo": "Plant with abundant, colorful blooms, ideal for shaded flower beds."},
+  "Torenia fournieri": {"nome": "Wishbone Flower", "origem": "Southeast Asia (Vietnam)", "resumo": "Plant with small blue and purple flowers, also known as 'clown flower'."},
+  "Plectranthus scutellarioides": {"nome": "Coleus", "origem": "Southeast Asia and Australia", "resumo": "Ornamental plant grown for its colorful, varied foliage rather than its flowers."},
+  "Ophiopogon japonicus": {"nome": "Mondo Grass", "origem": "Japan and Korea", "resumo": "Low ground-cover plant used as garden edging, with thin, near-black leaves."},
+  "Nymphaea alba": {"nome": "White Water Lily", "origem": "Europe and North Africa", "resumo": "Aquatic plant with floating leaves and white flowers, a classic feature of ornamental ponds."},
+  "Pistia stratiotes": {"nome": "Water Lettuce", "origem": "Tropical regions (likely native to South America)", "resumo": "Floating aquatic plant with velvety leaves, used in ponds and aquariums."},
+  "Eichhornia crassipes": {"nome": "Water Hyacinth", "origem": "Amazon Basin (Brazil)", "resumo": "Floating aquatic plant with purple flowers, also known for its invasive potential in waterways."},
+  "Victoria amazonica": {"nome": "Amazon Water Lily", "origem": "Amazon Basin (Brazil)", "resumo": "The world's largest floating-leaf aquatic plant, an icon of Amazonian flora."},
+  "Passiflora edulis": {"nome": "Passion Fruit Vine", "origem": "South America (Brazil)", "resumo": "Native vine with lush flowers, grown for its fruit, the passion fruit."},
+  "Brugmansia suaveolens": {"nome": "Angel's Trumpet", "origem": "South America (Brazil)", "resumo": "Shrub with large, pendant, trumpet-shaped flowers with an intense scent at night; toxic if ingested."},
+  "Solanum lycopersicum": {"nome": "Tomato Plant", "origem": "South America (Andean region)", "resumo": "Vegetable crop grown worldwide for its fruit, the tomato."},
+  "Capsicum annuum": {"nome": "Pepper Plant", "origem": "Central and South America", "resumo": "Vegetable crop that produces peppers in various shapes, colors and heat levels."},
+  "Coffea arabica": {"nome": "Coffee Plant", "origem": "Ethiopia", "resumo": "Shrub whose roasted beans produce coffee, a crop of enormous economic importance in Brazil."},
+  "Theobroma cacao": {"nome": "Cacao Tree", "origem": "Amazon Basin (South America)", "resumo": "Tree whose fruit (cacao) is the raw material for chocolate."},
+  "Punica granatum": {"nome": "Pomegranate Tree", "origem": "Iran and the Himalayas region", "resumo": "Fruit shrub whose fruit (pomegranate) is packed with juicy, reddish seeds."},
+  "Vitis vinifera": {"nome": "Grapevine", "origem": "Mediterranean region and Central Asia", "resumo": "Fruit-bearing vine cultivated for millennia, the basis of grape and wine production."},
+  "Zingiber officinale": {"nome": "Ginger", "origem": "Southeast Asia", "resumo": "Plant with a spicy rhizome widely used in cooking and folk medicine."},
+  "Curcuma longa": {"nome": "Turmeric", "origem": "South Asia (India)", "resumo": "Plant with an orange rhizome, the base of the turmeric spice, used in cooking and as a natural dye."},
+  "Allium sativum": {"nome": "Garlic", "origem": "Central Asia", "resumo": "Bulbous plant with an aromatic bulb, one of the most widely used seasonings in the world."},
+  "Allium cepa": {"nome": "Onion", "origem": "Central Asia", "resumo": "Bulbous plant with a strong flavor, a staple ingredient in almost every cuisine in the world."},
+  "Coriandrum sativum": {"nome": "Cilantro (Coriander)", "origem": "Mediterranean region and Southwest Asia", "resumo": "Aromatic herb with leaves widely used in Brazilian cooking, with a very distinctive flavor."},
+  "Petroselinum crispum": {"nome": "Parsley", "origem": "Mediterranean region", "resumo": "Aromatic herb with finely cut green leaves, present in almost every Western cuisine."},
+  "Origanum vulgare": {"nome": "Oregano", "origem": "Mediterranean region", "resumo": "Dried aromatic herb widely used in Italian sauces and dishes."},
+  "Thymus vulgaris": {"nome": "Thyme", "origem": "Mediterranean region", "resumo": "Aromatic herb with small leaves, used in seasonings and traditional medicine."},
+  "Cymbopogon citratus": {"nome": "Lemongrass", "origem": "South Asia (India)", "resumo": "Plant with long leaves and a citrus aroma, widely used in calming teas."},
+  "Melissa officinalis": {"nome": "Lemon Balm", "origem": "Southern Europe and Western Asia", "resumo": "Aromatic herb with a lemon scent, traditionally used in calming teas."},
+  "Matricaria chamomilla": {"nome": "Chamomile", "origem": "Europe and Western Asia", "resumo": "Plant with small white and yellow flowers, widely used in relaxing teas."},
+  "Stevia rebaudiana": {"nome": "Stevia", "origem": "South America (Paraguay and Brazil)", "resumo": "Plant whose leaves have an intensely sweet taste, used as a natural sweetener."},
+  "Euphorbia tirucalli": {"nome": "Pencil Cactus", "origem": "East Africa", "resumo": "Shrub with thin, cylindrical, leafless-looking branches; its sap is toxic and irritating on contact."},
+  "Euphorbia lactea": {"nome": "Candelabra Spurge", "origem": "India", "resumo": "Spiny-looking succulent with triangular stems; despite its common name, it is not a true cactus."},
+  "Pachypodium lamerei": {"nome": "Madagascar Palm", "origem": "Madagascar", "resumo": "Spiny succulent with a thick trunk and leaves only at the top, resembling a small palm."},
+  "Adenium obesum": {"nome": "Desert Rose", "origem": "East Africa and the Arabian Peninsula", "resumo": "Succulent with a swollen stem and showy flowers, very popular as a potted ornamental plant."},
+  "Beaucarnea recurvata": {"nome": "Ponytail Palm", "origem": "Mexico", "resumo": "Plant with a strongly swollen stem base used to store water, with long, thin leaves at the top."},
+  "Yucca elephantipes": {"nome": "Spineless Yucca", "origem": "Mexico and Central America", "resumo": "Plant with a woody stem and rigid, sword-shaped leaves, very hardy and used in decor."},
+  "Dracaena marginata": {"nome": "Madagascar Dragon Tree", "origem": "Madagascar", "resumo": "Plant with a thin stem and long leaves with reddish edges, popular in interior decor."},
+  "Dracaena fragrans": {"nome": "Corn Plant", "origem": "Tropical Africa", "resumo": "Plant with broad, glossy leaves arranged in a rosette at the top of the stem, tolerant of indoor environments."},
+  "Ravenala madagascariensis": {"nome": "Traveler's Palm", "origem": "Madagascar", "resumo": "Plant with fan-arranged leaves, resembling a palm, a symbol of Madagascar."},
+  "Bambusa vulgaris": {"nome": "Common Bamboo", "origem": "Southeast Asia", "resumo": "Fast-growing bamboo species, widely used for hedges and landscaping."},
+  "Phyllostachys aurea": {"nome": "Golden Bamboo", "origem": "China", "resumo": "Ornamental bamboo with yellowish canes, widely used in gardens and decorative hedges."},
+  "Equisetum hyemale": {"nome": "Horsetail", "origem": "North America, Europe and Asia", "resumo": "Plant with rigid, segmented stems and no flowers, traditionally used in folk medicine."},
+  "Selaginella martensii": {"nome": "Spikemoss", "origem": "Mexico and Central America", "resumo": "Moss-like ground cover plant that prefers humid, shaded environments."},
+  "Davallia fejeensis": {"nome": "Rabbit's Foot Fern", "origem": "Fiji Islands", "resumo": "Fern with hairy rhizomes resembling rabbit's feet, grown in hanging pots."},
+  "Tillandsia ionantha": {"nome": "Sky Plant", "origem": "Mexico and Central America", "resumo": "Air plant bromeliad that needs no soil, absorbing water and nutrients directly from the air."},
+  "Alocasia macrorrhiza": {"nome": "Elephant Ear", "origem": "Southeast Asia", "resumo": "Plant with enormous heart-shaped leaves, widely used to give gardens a tropical feel."},
+  "Colocasia esculenta": {"nome": "Taro", "origem": "Southeast Asia", "resumo": "Plant with large leaves and edible tubers, grown as food in various tropical cultures."},
+  "Xanthosoma sagittifolium": {"nome": "Tannia", "origem": "Central and South America", "resumo": "Plant with large edible leaves, widely used as a leafy vegetable in Brazilian cooking."},
+  "Caladium bicolor": {"nome": "Angel Wings", "origem": "Amazon Basin (Brazil)", "resumo": "Ornamental plant with large, colorful leaves in vivid patterns and shades."},
+  "Anthurium scherzerianum": {"nome": "Flamingo Lily", "origem": "Central America (Costa Rica and Guatemala)", "resumo": "Plant with a bright red flower and curled spadix, a relative of the common anthurium."},
+  "Begonia semperflorens": {"nome": "Wax Begonia", "origem": "Brazil", "resumo": "Native Brazilian plant with continuous blooms, widely used in flower beds and garden borders."},
+  "Impatiens balsamina": {"nome": "Garden Balsam", "origem": "South Asia (India and Myanmar)", "resumo": "Plant with colorful flowers and seed pods that burst open when ripe."},
+  "Lantana camara": {"nome": "Lantana", "origem": "Central and South America", "resumo": "Shrub with small, multicolored flowers, highly attractive to butterflies."},
+  "Achillea millefolium": {"nome": "Yarrow", "origem": "Europe and Asia", "resumo": "Plant with finely cut foliage and small white flowers, traditionally used in folk medicine."},
+  "Calendula officinalis": {"nome": "Pot Marigold", "origem": "Mediterranean region", "resumo": "Plant with orange flowers traditionally used in homemade creams and healing balms."},
+  "Tagetes erecta": {"nome": "Mexican Marigold", "origem": "Mexico", "resumo": "Plant with fragrant yellow and orange flowers, traditionally used in cemeteries and gardens."},
+  "Zinnia elegans": {"nome": "Zinnia", "origem": "Mexico", "resumo": "Vibrant, easy-to-grow flower, widely used to attract butterflies to the garden."},
+  "Cosmos bipinnatus": {"nome": "Cosmos", "origem": "Mexico", "resumo": "Delicate flower with colorful petals and fine foliage, common in gardens and flower fields."},
+  "Gerbera jamesonii": {"nome": "Gerbera Daisy", "origem": "South Africa", "resumo": "Flower with long, colorful petals, widely used in bouquets and floral arrangements."},
+  "Chrysanthemum morifolium": {"nome": "Chrysanthemum", "origem": "China", "resumo": "Flower with many petals in varied colors, traditionally associated with tributes and cemeteries in some cultures."},
+  "Dahlia pinnata": {"nome": "Dahlia", "origem": "Mexico", "resumo": "Flower with numerous symmetrical petals, available in a wide variety of colors and shapes."},
+  "Gladiolus communis": {"nome": "Gladiolus", "origem": "South Africa and Mediterranean region", "resumo": "Tall-stemmed flower with multiple blooms arranged in a row, widely used in vertical arrangements."},
+  "Tulipa gesneriana": {"nome": "Tulip", "origem": "Central Asia", "resumo": "Bulbous flower symbolizing the Netherlands, with cup-shaped petals in vivid colors."},
+  "Narcissus tazetta": {"nome": "Daffodil", "origem": "Mediterranean region", "resumo": "Bulbous flower with white or yellow petals and a crown-shaped center."},
+  "Iris germanica": {"nome": "Bearded Iris", "origem": "Europe and Western Asia", "resumo": "Elegant flower with large, wavy petals, available in a range of vivid colors."},
+  "Hyacinthus orientalis": {"nome": "Hyacinth", "origem": "Eastern Mediterranean region", "resumo": "Highly fragrant bulbous flower, with small blooms clustered on a central stem."},
+  "Lilium candidum": {"nome": "Madonna Lily", "origem": "Eastern Mediterranean region", "resumo": "Large, fragrant flower, a traditional symbol of purity in many cultures."},
+  "Clivia miniata": {"nome": "Clivia", "origem": "South Africa", "resumo": "Plant with sturdy foliage and clustered orange flowers, tolerant of low-light environments."},
+  "Agapanthus africanus": {"nome": "Lily of the Nile", "origem": "South Africa", "resumo": "Plant with blue or white flowers clustered on a tall stem, widely used in gardens and flower beds."},
+  "Ficus benghalensis": {"nome": "Banyan Tree", "origem": "India", "resumo": "Large tree known for its aerial roots that descend from the branches to the ground."},
+  "Ficus religiosa": {"nome": "Sacred Fig (Bodhi Tree)", "origem": "South Asia (India)", "resumo": "Tree considered sacred in Buddhism and Hinduism, associated with Buddha's enlightenment."},
+  "Bauhinia forficata": {"nome": "Orchid Tree (Cow's Hoof Tree)", "origem": "South America (Brazil)", "resumo": "Native tree with two-lobed leaves resembling a cow's hoof, traditionally used in folk medicine."},
+  "Cassia fistula": {"nome": "Golden Shower Tree", "origem": "South Asia", "resumo": "Ornamental tree with intense, pendant yellow blooms, widely used in urban landscaping."},
+  "Erythrina speciosa": {"nome": "Coral Tree", "origem": "Brazil", "resumo": "Native tree with showy red blooms, traditionally associated with calming properties in folk medicine."},
+  "Jacaranda mimosifolia": {"nome": "Jacaranda", "origem": "South America (Brazil, Argentina and Bolivia)", "resumo": "Tree with lush purple blooms, widely used along avenues and in squares in Brazil."},
+  "Ceiba speciosa": {"nome": "Silk Floss Tree", "origem": "South America (Brazil and Argentina)", "resumo": "Tree with a spiny trunk and pink flowers, producing fruit with fibers used as stuffing (kapok)."},
+  "Caesalpinia echinata": {"nome": "Brazilwood", "origem": "Brazil (Atlantic Forest)", "resumo": "The tree that gave the country its name, historically harvested for the red dye extracted from its wood."},
+  "Swietenia macrophylla": {"nome": "Mahogany", "origem": "Central and South America", "resumo": "Large tree highly valued for its fine timber, now threatened by deforestation."},
+  "Hymenaea courbaril": {"nome": "Jatoba (Brazilian Cherry)", "origem": "Central and South America", "resumo": "Large native tree with edible fruit and very hard wood."},
+  "Bertholletia excelsa": {"nome": "Brazil Nut Tree", "origem": "Amazon Basin (Brazil)", "resumo": "Giant Amazonian tree that produces Brazil nuts inside large woody pods."},
+  "Euterpe oleracea": {"nome": "Açaí Palm", "origem": "Amazon Basin (Brazil)", "resumo": "Palm that produces açaí, a fruit very popular in cooking and as a natural energy source."},
+  "Bactris gasipaes": {"nome": "Peach Palm", "origem": "South America (Amazon)", "resumo": "Palm whose heart of palm and fruit (peach palm fruit) are widely used in Brazilian cooking."},
+  "Attalea speciosa": {"nome": "Babassu Palm", "origem": "Brazil (North and Northeast regions)", "resumo": "Native palm of great economic and social importance, with oil extracted from its seeds."},
+  "Syagrus romanzoffiana": {"nome": "Queen Palm", "origem": "Brazil", "resumo": "Native palm common in urban landscaping, with clusters of orange fruit enjoyed by birds."},
+  "Phoenix roebelenii": {"nome": "Pygmy Date Palm", "origem": "Southeast Asia (Laos and Vietnam)", "resumo": "Small palm widely used in gardens and pots, with fine, arching leaves."},
+  "Washingtonia robusta": {"nome": "Mexican Fan Palm", "origem": "Mexico", "resumo": "Tall, slender palm, widely used along avenues and in large-scale landscaping."},
+  "Heliconia psittacorum": {"nome": "Parakeet Flower", "origem": "South America (Brazil)", "resumo": "Tropical plant with small, colorful flowers, more compact than other heliconias."},
+  "Costus spicatus": {"nome": "Spiral Ginger", "origem": "Brazil", "resumo": "Native plant with a spiraling stem, traditionally used in Brazilian folk medicine."},
+  "Alpinia zerumbet": {"nome": "Shell Ginger", "origem": "Southeast Asia", "resumo": "Aromatic plant whose leaves are traditionally used in baths and infusions in Brazil."},
+  "Hedychium coronarium": {"nome": "White Ginger Lily", "origem": "South and Southeast Asia", "resumo": "Plant with highly fragrant white flowers, found naturally in wetlands and marshes."},
+  "Canna indica": {"nome": "Canna Lily", "origem": "Central and South America", "resumo": "Ornamental plant with broad leaves and showy flowers in shades of red, orange and yellow."},
+  "Pontederia cordata": {"nome": "Pickerelweed", "origem": "The Americas (including Brazil)", "resumo": "Aquatic plant with heart-shaped leaves and blue-violet flowers, common in ponds and marshes."},
+  "Salvinia auriculata": {"nome": "Giant Salvinia", "origem": "South America (Brazil)", "resumo": "Floating aquatic fern with small, hairy leaves that repel water."},
+  "Ceratophyllum demersum": {"nome": "Hornwort", "origem": "Worldwide distribution", "resumo": "Submerged aquatic plant widely used in aquariums, with no roots anchored to the substrate."},
+  "Vallisneria spiralis": {"nome": "Straight Vallisneria", "origem": "Tropical and subtropical regions", "resumo": "Aquatic plant with long, thin leaves, popular in aquariums for oxygenating the water."},
+  "Anubias barteri": {"nome": "Anubias", "origem": "West Africa (Cameroon and Nigeria)", "resumo": "Aquatic plant with thick, hardy leaves, one of the most popular in fishkeeping."},
+  "Microsorum pteropus": {"nome": "Java Fern", "origem": "Southeast Asia", "resumo": "Aquatic fern that attaches to rocks and driftwood, widely used in planted aquariums."},
+  "Selaginella lepidophylla": {"nome": "Rose of Jericho", "origem": "Chihuahuan Desert (Mexico and USA)", "resumo": "Plant able to survive completely dried out for years and revive upon contact with water."},
+  "Ficus carica": {"nome": "Common Fig", "origem": "Mediterranean region and Western Asia", "resumo": "Fruit tree cultivated for millennia, known for its sweet, soft figs."},
+  "Prunus persica": {"nome": "Peach Tree", "origem": "China", "resumo": "Temperate fruit tree, grown for its sweet, fuzzy peaches."},
+  "Malus domestica": {"nome": "Apple Tree", "origem": "Central Asia", "resumo": "Temperate fruit tree, one of the most widely grown fruit species in the world."},
+  "Persea americana": {"nome": "Avocado Tree", "origem": "Central America (Mexico)", "resumo": "Large fruit tree grown for the avocado, a fruit rich in healthy fats."},
+  "Annona muricata": {"nome": "Soursop", "origem": "Central America and the Caribbean", "resumo": "Tropical fruit tree whose fruit, the soursop, has white pulp with a mild, tangy flavor."},
+  "Annona squamosa": {"nome": "Sugar Apple", "origem": "Central America and the Caribbean", "resumo": "Fruit tree also known as sweetsop, with a segmented rind and sweet pulp."},
+  "Averrhoa carambola": {"nome": "Star Fruit", "origem": "Southeast Asia", "resumo": "Fruit tree whose fruit, the carambola, forms a star shape when cut crosswise."},
+  "Eugenia uniflora": {"nome": "Surinam Cherry", "origem": "Brazil", "resumo": "Small native tree with red, tangy fruit widely enjoyed in Brazil."},
+  "Myrciaria cauliflora": {"nome": "Jabuticaba", "origem": "Brazil", "resumo": "Native tree whose fruit grows directly on the trunk, a trait known as cauliflory."},
+  "Spondias purpurea": {"nome": "Spanish Plum", "origem": "Central America", "resumo": "Fruit tree with small, reddish fruit, very popular in Brazil's Northeast."},
+  "Anacardium occidentale": {"nome": "Cashew Tree", "origem": "Brazil (Northeast region)", "resumo": "Native tree that produces the cashew fruit, eaten fresh, and the widely prized cashew nut."},
+  "Inga edulis": {"nome": "Ice Cream Bean", "origem": "South America (Brazil)", "resumo": "Native tree whose pods contain a sweet white pulp popularly known as ingá."},
+  "Bixa orellana": {"nome": "Annatto", "origem": "South America (Brazil)", "resumo": "Shrub whose seeds produce a natural orange-red dye, used in cooking and cosmetics."},
+  "Cinnamomum verum": {"nome": "Cinnamon Tree", "origem": "Sri Lanka", "resumo": "Tree whose inner bark, once dried, becomes the spice known as cinnamon."},
+  "Syzygium aromaticum": {"nome": "Clove Tree", "origem": "Maluku Islands (Indonesia)", "resumo": "Tree whose dried flower buds form cloves, a spice widely used in sweets and seasonings."},
+  "Vanilla planifolia": {"nome": "Vanilla Orchid", "origem": "Mexico", "resumo": "Climbing orchid whose fruit (pods) yield vanilla, one of the most valuable spices in the world."},
+  "Piper nigrum": {"nome": "Black Pepper", "origem": "Southern India", "resumo": "Vine whose dried, ground fruit forms black pepper, one of the most widely used spices in the world."},
+  "Pilea cadierei": {"nome": "Aluminum Plant", "origem": "Vietnam and China", "resumo": "Plant with dark green leaves marked with silvery patches resembling polished metal."},
+  "Fittonia albivenis": {"nome": "Nerve Plant", "origem": "South America (Peru)", "resumo": "Plant with leaves featuring prominent white or pink veins, prefers humid, shaded environments."},
+  "Peperomia argyreia": {"nome": "Watermelon Peperomia", "origem": "South America (Brazil)", "resumo": "Plant with round leaves featuring silvery stripes resembling a watermelon rind."},
+  "Ludisia discolor": {"nome": "Jewel Orchid", "origem": "Southeast Asia", "resumo": "Orchid grown mainly for its velvety foliage with golden veins, more than for its flowers."},
+  "Paphiopedilum insigne": {"nome": "Slipper Orchid", "origem": "South and Southeast Asia", "resumo": "Orchid with a slipper-shaped lip, highly sought after by collectors."},
+  "Caryocar brasiliense": {"nome": "Pequi Tree", "origem": "Brazil (Cerrado)", "resumo": "Tree symbolic of the Brazilian Cerrado, with fruit (pequi) known for its strong flavor and aroma, widely used in Goiás cuisine."},
+  "Hancornia speciosa": {"nome": "Mangaba Tree", "origem": "Brazil (Cerrado and coast)", "resumo": "Native tree with milky latex, producing sweet, fragrant fruit called mangaba."},
+  "Dipteryx odorata": {"nome": "Tonka Bean Tree", "origem": "Amazon Basin (South America)", "resumo": "Large tree whose fragrant seeds smell like vanilla and are used in perfumery."},
+  "Copaifera langsdorffii": {"nome": "Copaiba Tree", "origem": "Brazil", "resumo": "Native tree whose oleoresin, extracted from the trunk, is traditionally used as a healing balm."},
+  "Tabebuia aurea": {"nome": "Caribbean Trumpet Tree", "origem": "Brazil (Cerrado and Pantanal)", "resumo": "Tree with yellow blooms and silvery leaves, highly resistant to drought and fire."},
+  "Schinus terebinthifolia": {"nome": "Brazilian Peppertree", "origem": "Brazil", "resumo": "Native tree whose reddish berries are used as pink peppercorns in cooking."},
+  "Myracrodruon urundeuva": {"nome": "Aroeira (Urundeuva)", "origem": "Brazil (Caatinga and Cerrado)", "resumo": "Tree with extremely durable wood, traditionally used in construction and fencing."},
+  "Anadenanthera colubrina": {"nome": "Angico", "origem": "South America (Brazil)", "resumo": "Native tree whose bark is traditionally used in folk medicine, with long-lasting wood."},
+  "Cariniana legalis": {"nome": "Jequitiba", "origem": "Brazil (Atlantic Forest)", "resumo": "One of the largest native trees in Brazil, able to live for centuries and grow to great size."},
+  "Cedrus libani": {"nome": "Cedar of Lebanon", "origem": "Eastern Mediterranean region (Lebanon)", "resumo": "Majestic conifer with a wide canopy, historically associated with the construction of ancient temples."},
+  "Pinus elliottii": {"nome": "Slash Pine", "origem": "Southeastern United States", "resumo": "Conifer widely planted in Southern Brazil for timber and resin production."},
+  "Eucalyptus globulus": {"nome": "Blue Gum Eucalyptus", "origem": "Australia", "resumo": "Fast-growing tree, widely cultivated in Brazil for pulp and timber production."},
+  "Melaleuca alternifolia": {"nome": "Tea Tree", "origem": "Australia", "resumo": "Shrub whose leaves produce an essential oil widely used in hygiene products and cosmetics."},
+  "Casuarina equisetifolia": {"nome": "Australian Pine (Casuarina)", "origem": "Australia and Southeast Asia", "resumo": "Tree with thin, horsetail-like branches, widely used to stabilize dunes in coastal areas."},
+  "Terminalia catappa": {"nome": "Tropical Almond Tree", "origem": "Southeast Asia and Oceania", "resumo": "Tree with a canopy of horizontal layers, very common on sidewalks and coastal areas in Brazil."},
+  "Plumbago auriculata": {"nome": "Cape Plumbago", "origem": "South Africa", "resumo": "Climbing shrub with small, pale blue flowers, widely used as a hedge and on trellises."},
+  "Thunbergia grandiflora": {"nome": "Bengal Clock Vine", "origem": "India", "resumo": "Vigorous vine with large blue-violet flowers, widely used to cover pergolas."},
+  "Clitoria ternatea": {"nome": "Butterfly Pea", "origem": "Southeast Asia", "resumo": "Vine with intense blue flowers, whose tea is traditionally used for its vibrant color."},
+  "Passiflora caerulea": {"nome": "Blue Passionflower", "origem": "South America", "resumo": "Ornamental vine with intricate, showy flowers, grown more for its beauty than its fruit."},
+  "Mandevilla sanderi": {"nome": "Brazilian Jasmine", "origem": "Brazil", "resumo": "Vine with trumpet-shaped flowers, widely used on trellises and pergolas."},
+  "Trachelospermum jasminoides": {"nome": "Star Jasmine", "origem": "East Asia (China and Japan)", "resumo": "Vine with fragrant, star-shaped white flowers, widely used in vertical gardens."},
+  "Wisteria sinensis": {"nome": "Chinese Wisteria", "origem": "China", "resumo": "Vigorous vine with clusters of pendant purple flowers, widely used on ornamental pergolas."},
+  "Antigonon leptopus": {"nome": "Coral Vine", "origem": "Mexico", "resumo": "Vine with clusters of abundant pink flowers, grows quickly over fences and walls."},
+  "Ipomoea purpurea": {"nome": "Common Morning Glory", "origem": "Mexico and Central America", "resumo": "Vine with trumpet-shaped flowers that open in the morning and wilt by afternoon."},
+  "Portulaca oleracea": {"nome": "Purslane", "origem": "Likely native to India or the Middle East", "resumo": "Low-growing plant with succulent leaves, considered by many a weed but also edible."},
+  "Oxalis triangularis": {"nome": "Purple Shamrock", "origem": "South America (Brazil)", "resumo": "Plant with purple, clover-shaped leaves that fold up at night, with small pink flowers."},
+  "Bellis perennis": {"nome": "English Daisy", "origem": "Europe", "resumo": "Small flower with white petals and a yellow center, common in lawns and winter flower beds."},
+  "Viola odorata": {"nome": "Sweet Violet", "origem": "Europe and Asia", "resumo": "Small plant with highly fragrant purple flowers, traditionally used in perfumery."},
+  "Primula vulgaris": {"nome": "Primrose", "origem": "Europe", "resumo": "Low-growing plant with early blooms in varied shades, heralding spring."},
+  "Digitalis purpurea": {"nome": "Foxglove", "origem": "Western Europe", "resumo": "Plant with pendant tubular flowers; extremely toxic if ingested, despite being ornamental."},
+  "Papaver rhoeas": {"nome": "Common Poppy", "origem": "Europe and North Africa", "resumo": "Flower with delicate red petals, a symbol traditionally associated with remembrance in many cultures."},
+  "Consolida ajacis": {"nome": "Larkspur", "origem": "Mediterranean region", "resumo": "Plant with tall, colorful flower spikes, common in cutting gardens."},
+  "Nigella damascena": {"nome": "Love-in-a-Mist", "origem": "Southern Europe", "resumo": "Plant with delicate flowers surrounded by fine, lacy foliage."},
+  "Centaurea cyanus": {"nome": "Cornflower", "origem": "Europe", "resumo": "Vivid blue flower, traditionally found in wheat fields and used in wildflower bouquets."},
+  "Rudbeckia hirta": {"nome": "Black-Eyed Susan", "origem": "North America", "resumo": "Yellow flower with a dark center, hardy and easy to grow in full-sun gardens."},
+  "Echinacea purpurea": {"nome": "Purple Coneflower", "origem": "North America", "resumo": "Plant with purple-pink flowers and an orange center, traditionally associated with immune support."},
+  "Salvia splendens": {"nome": "Scarlet Sage", "origem": "Brazil", "resumo": "Native plant with vivid red flowers arranged in spikes, widely used in flower beds."},
+  "Verbena bonariensis": {"nome": "Purpletop Vervain", "origem": "South America (Brazil and Argentina)", "resumo": "Plant with tall, thin stems topped with small purple flowers, attractive to butterflies."},
+  "Nicotiana alata": {"nome": "Flowering Tobacco", "origem": "South America (Brazil and Argentina)", "resumo": "Ornamental plant with fragrant tubular flowers, a relative of the tobacco plant but grown for beauty."},
+  "Antirrhinum majus": {"nome": "Snapdragon", "origem": "Mediterranean region", "resumo": "Flower whose shape resembles a mouth that opens and closes when squeezed, delighting children."},
+  "Cynodon dactylon": {"nome": "Bermuda Grass", "origem": "Africa and Asia", "resumo": "Hardy, fast-growing grass, widely used on residential lawns and sports fields."},
+  "Paspalum notatum": {"nome": "Bahia Grass", "origem": "South America", "resumo": "Rustic, drought-resistant grass, very common in lawns and pastures in Brazil."},
+  "Stenotaphrum secundatum": {"nome": "St. Augustine Grass", "origem": "Tropical and subtropical coastal regions", "resumo": "Grass with broad, soft blades, one of the most widely used in residential gardens in Brazil."},
+  "Vetiveria zizanioides": {"nome": "Vetiver", "origem": "Southern India", "resumo": "Plant with deep aromatic roots, used both in perfumery and for slope stabilization."},
+  "Ficus pumila": {"nome": "Creeping Fig", "origem": "East Asia (China and Japan)", "resumo": "Vine with small leaves that clings tightly to walls and fences."},
+  "Monstera adansonii": {"nome": "Swiss Cheese Vine", "origem": "Central and South America", "resumo": "Vine related to the Swiss cheese plant, with smaller leaves and more numerous, rounder holes."},
+  "Philodendron xanadu": {"nome": "Xanadu Philodendron", "origem": "Brazil", "resumo": "Plant with deeply cut foliage and a compact habit, widely used in gardens and indoor spaces."},
+  "Alocasia amazonica": {"nome": "Amazonian Elephant Ear", "origem": "Hybrid origin (cultivated)", "resumo": "Ornamental plant with dark leaves and striking white veins, highly prized for its dramatic foliage."},
+  "Baccharis trimera": {"nome": "Carqueja", "origem": "South America (Brazil)", "resumo": "Native plant with flattened, leafless-looking stems, traditionally used in digestive teas."},
+  "Phyllanthus niruri": {"nome": "Stonebreaker", "origem": "Tropical regions of South America", "resumo": "Small plant traditionally associated, in folk medicine, with easing kidney stones."},
+  "Plectranthus barbatus": {"nome": "Indian Coleus (Boldo)", "origem": "East Africa", "resumo": "Aromatic plant with large, fuzzy leaves, widely used in digestive teas in Brazil."},
+  "Artemisia absinthium": {"nome": "Wormwood", "origem": "Europe and Asia", "resumo": "Bitter plant with silvery foliage, historically used in liqueurs and traditional medicine."},
+  "Ruta graveolens": {"nome": "Common Rue", "origem": "Mediterranean region", "resumo": "Aromatic plant with bluish leaves, traditionally associated with folk beliefs about protection."},
+  "Cymbopogon nardus": {"nome": "Citronella Grass", "origem": "South and Southeast Asia", "resumo": "Plant with long, aromatic leaves, known for its natural insect-repellent oil."},
+  "Lippia alba": {"nome": "Bushy Matgrass", "origem": "Central and South America", "resumo": "Native aromatic shrub, traditionally used in calming teas in Brazil."},
+  "Cordia verbenacea": {"nome": "Black Sage (Erva-baleeira)", "origem": "Brazil (coast)", "resumo": "Shrub native to the Brazilian coast, traditionally used as a natural anti-inflammatory."},
+  "Justicia pectoralis": {"nome": "Chambá", "origem": "South America (Brazil)", "resumo": "Native aromatic plant, traditionally used in syrups and teas for respiratory relief."},
+  "Momordica charantia": {"nome": "Bitter Melon", "origem": "Africa and tropical Asia", "resumo": "Vine with warty, very bitter fruit, traditionally used in folk medicine."},
+  "Ageratum conyzoides": {"nome": "Billygoat Weed", "origem": "Central and South America", "resumo": "Common herbaceous plant found in vacant lots, with small blue or lilac flowers."},
+  "Bidens pilosa": {"nome": "Black Jack (Spanish Needle)", "origem": "South America", "resumo": "Common herbaceous plant considered a weed, with seeds that easily stick to clothing and fur."},
+  "Taraxacum officinale": {"nome": "Dandelion", "origem": "Europe and Asia", "resumo": "Plant with yellow flowers that turn into fluffy seed heads scattered by the wind."},
+  "Trifolium repens": {"nome": "White Clover", "origem": "Europe", "resumo": "Low-growing plant with three-lobed leaves, common in lawns and popularly linked to luck when it has four leaves."},
+  "Amaranthus viridis": {"nome": "Slender Amaranth", "origem": "Tropical regions of the Americas", "resumo": "Herbaceous plant with edible leaves, traditionally eaten as a leafy green in Brazil's Northeast."},
+  "Dysphania ambrosioides": {"nome": "Epazote", "origem": "Central and South America", "resumo": "Aromatic plant traditionally used in seasoning and folk medicine against parasites."},
+  "Cyperus rotundus": {"nome": "Purple Nutsedge", "origem": "Africa and South Asia", "resumo": "Plant with underground rhizomes, considered one of the most persistent weeds in the world."},
+  "Commelina benghalensis": {"nome": "Benghal Dayflower", "origem": "Africa and tropical Asia", "resumo": "Low-growing plant with small blue flowers, common in gardens and vegetable plots as a weed."},
+  "Ricinus communis": {"nome": "Castor Bean Plant", "origem": "East Africa (Ethiopia region)", "resumo": "Plant whose seeds are used to produce castor oil; the raw seeds are toxic if ingested."},
+  "Jatropha curcas": {"nome": "Physic Nut", "origem": "Central America", "resumo": "Shrub whose oily seeds are studied as a source of biodiesel."},
+  "Manihot esculenta": {"nome": "Cassava", "origem": "Amazon Basin (Brazil)", "resumo": "Plant with a starchy tuberous root, a traditional staple food in Brazil."},
+  "Ipomoea batatas": {"nome": "Sweet Potato", "origem": "Central and South America", "resumo": "Low-growing plant with a sweet tuberous root, grown as food throughout the tropical world."},
+  "Solanum tuberosum": {"nome": "Potato", "origem": "Andean region of South America", "resumo": "Plant with underground tubers, one of the most widely eaten and cultivated foods in the world."},
+  "Daucus carota": {"nome": "Carrot", "origem": "Central Asia and Mediterranean region", "resumo": "Vegetable crop with an orange root, rich in beta-carotene and widely grown in gardens."},
+  "Brassica oleracea": {"nome": "Wild Cabbage", "origem": "Europe (Mediterranean region)", "resumo": "A single species that gave rise to many well-known vegetables, such as kale, cabbage and broccoli."},
+  "Lactuca sativa": {"nome": "Lettuce", "origem": "Mediterranean region and Western Asia", "resumo": "Leafy vegetable with tender leaves, one of the most widely eaten salad greens in the world."},
+  "Cucurbita pepo": {"nome": "Zucchini", "origem": "Central and North America", "resumo": "Low-growing plant that produces long green fruit, widely used in cooking."},
+  "Cucurbita moschata": {"nome": "Butternut Squash", "origem": "Central and South America", "resumo": "Low-growing plant with large fruit and orange flesh, widely used in sweet and savory dishes in Brazil."},
+  "Phaseolus vulgaris": {"nome": "Common Bean", "origem": "Central and South America", "resumo": "Legume whose seeds are one of the most traditional and important foods in Brazilian cuisine."},
+  "Zea mays": {"nome": "Corn", "origem": "Mexico", "resumo": "Cereal crop of great nutritional and economic importance worldwide."},
+  "Oryza sativa": {"nome": "Rice", "origem": "South and Southeast Asia", "resumo": "Cereal crop grown in flooded fields, a staple food for over half the world's population."},
+  "Saccharum officinarum": {"nome": "Sugarcane", "origem": "Southeast Asia and New Guinea", "resumo": "Plant with a sugar-rich stalk, of great historical and economic importance in Brazil."},
+  "Arachis hypogaea": {"nome": "Peanut", "origem": "South America (Brazil and Bolivia)", "resumo": "Legume whose seeds develop underground after flowering."},
+  "Glycine max": {"nome": "Soybean", "origem": "East Asia (China)", "resumo": "Legume of major importance in global agriculture, used for oil, animal feed and food."},
+  "Vigna unguiculata": {"nome": "Cowpea", "origem": "Africa", "resumo": "Legume widely grown and eaten in Brazil's Northeast, also known as black-eyed pea."},
+  "Sesamum indicum": {"nome": "Sesame", "origem": "Africa and South Asia", "resumo": "Plant whose seeds are widely used in cooking and oil production."},
+  "Beta vulgaris": {"nome": "Beetroot", "origem": "Europe and North Africa", "resumo": "Plant with a rounded, deep reddish-purple root, rich in nutrients."},
+  "Raphanus sativus": {"nome": "Radish", "origem": "Asia", "resumo": "Vegetable crop with a small, spicy, crunchy root, fast-growing in gardens."},
+  "Spinacia oleracea": {"nome": "Spinach", "origem": "Central Asia", "resumo": "Leafy vegetable with dark green leaves, rich in iron and widely used in dishes and juices."},
+  "Cucumis sativus": {"nome": "Cucumber", "origem": "South Asia (India)", "resumo": "Low-growing plant with elongated, refreshing fruit, widely eaten in salads."},
+  "Citrullus lanatus": {"nome": "Watermelon", "origem": "Africa", "resumo": "Low-growing plant that produces large, sweet, water-rich fruit, very popular in summer."},
+  "Cucumis melo": {"nome": "Melon", "origem": "Africa and South Asia", "resumo": "Low-growing plant with sweet, fragrant fruit, widely grown in warm climates."},
+  "Ananas comosus": {"nome": "Pineapple", "origem": "South America (Brazil and Paraguay)", "resumo": "Plant that produces a fruit made up of dozens of small fused flowers, highly enjoyed in Brazil."},
+  "Ginkgo biloba": {"nome": "Ginkgo", "origem": "China", "resumo": "Tree considered a living fossil, one of the oldest tree species still existing in the world."},
+  "Acer palmatum": {"nome": "Japanese Maple", "origem": "Japan, China and Korea", "resumo": "Ornamental tree with deeply cut leaves that turn vivid shades of red in autumn."},
+  "Prunus serrulata": {"nome": "Japanese Cherry (Sakura)", "origem": "Japan, China and Korea", "resumo": "Tree famous for its fleeting pink blooms, a symbol of Japanese spring (sakura)."},
+  "Podocarpus macrophyllus": {"nome": "Buddhist Pine", "origem": "Japan and China", "resumo": "Conifer with long, narrow leaves, widely used for hedges and in bonsai art."},
+  "Juniperus chinensis": {"nome": "Chinese Juniper", "origem": "China, Mongolia and Japan", "resumo": "Slow-growing conifer with flexible branches, one of the most used species in bonsai art."},
+  "Ulmus parvifolia": {"nome": "Chinese Elm", "origem": "China, Korea and Japan", "resumo": "Tree with decorative bark that peels in plates, highly prized as bonsai."},
+  "Zelkova serrata": {"nome": "Japanese Zelkova", "origem": "Japan, China and Korea", "resumo": "Tree with a fan-shaped canopy, widely used in bonsai art for its elegant trunk."},
+  "Serissa foetida": {"nome": "Tree of a Thousand Stars", "origem": "Southeast Asia", "resumo": "Shrub with small white flowers and leaves with a strong odor when crushed, popular in bonsai."},
+  "Carmona retusa": {"nome": "Fukien Tea Tree", "origem": "Southeast Asia", "resumo": "Shrub with small, glossy leaves, one of the most popular indoor bonsai."},
+  "Ficus microcarpa": {"nome": "Ginseng Ficus", "origem": "Southeast Asia and Australia", "resumo": "Tree with thick, exposed roots, widely used as bonsai for its sculptural trunk."},
+  "Portulacaria afra": {"nome": "Elephant Bush", "origem": "South Africa", "resumo": "Shrubby succulent with small, round leaves, widely used in bonsai compositions and succulent gardens."},
+  "Lithops karasmontana": {"nome": "Living Stone", "origem": "Namibia and South Africa", "resumo": "Succulent that mimics stones to camouflage in the desert, with a small flower appearing between the leaves."},
+  "Astrophytum myriostigma": {"nome": "Bishop's Cap Cactus", "origem": "Mexico", "resumo": "Spineless cactus with well-defined ribs and white dots, resembling the shape of a bishop's mitre."},
+  "Gymnocalycium mihanovichii": {"nome": "Moon Cactus", "origem": "Paraguay, Argentina and Brazil", "resumo": "Small cactus often grafted in colorful red or yellow varieties."},
+  "Ferocactus latispinus": {"nome": "Devil's Tongue Barrel Cactus", "origem": "Mexico", "resumo": "Globular cactus with long, curved spines, able to grow quite large over time."},
+  "Echinocactus grusonii": {"nome": "Golden Barrel Cactus", "origem": "Mexico", "resumo": "Globular cactus covered in golden spines, one of the most widely grown cactus species in the world."},
+  "Rebutia minuscula": {"nome": "Red Crown Cactus", "origem": "Argentina and Bolivia", "resumo": "Small cactus that grows in clusters and produces showy flowers around its base."},
+  "Epiphyllum oxypetalum": {"nome": "Queen of the Night", "origem": "Central and South America", "resumo": "Epiphytic cactus whose fragrant white flowers open only at night."},
+  "Selenicereus grandiflorus": {"nome": "Night-Blooming Cereus", "origem": "Mexico and the Caribbean", "resumo": "Climbing cactus with large, fragrant flowers that bloom only at night."},
+  "Stapelia gigantea": {"nome": "Carrion Flower", "origem": "South Africa", "resumo": "Succulent with large, star-shaped flowers that give off a strong odor to attract pollinating flies."},
+  "Huernia zebrina": {"nome": "Zebra-Striped Huernia", "origem": "South Africa", "resumo": "Succulent with star-shaped flowers featuring striped patterns resembling a zebra."},
+  "Euphorbia obesa": {"nome": "Baseball Plant", "origem": "South Africa", "resumo": "Nearly spherical, spineless succulent that resembles a small cactus."},
+  "Crassula perforata": {"nome": "String of Buttons", "origem": "South Africa", "resumo": "Succulent with triangular leaves stacked along the stem, forming a geometric pattern."},
+  "Graptopetalum paraguayense": {"nome": "Ghost Plant", "origem": "Mexico", "resumo": "Succulent with grayish-pink leaves arranged in a rosette, very hardy and easy to propagate."},
+  "Sedum rubrotinctum": {"nome": "Jelly Bean Plant", "origem": "Mexico", "resumo": "Succulent with small, round leaves that turn reddish under intense sun."},
+  "Cotyledon orbiculata": {"nome": "Pig's Ear", "origem": "South Africa", "resumo": "Succulent with thick, rounded leaves featuring a characteristic reddish edge."},
+  "Kalanchoe tomentosa": {"nome": "Panda Plant", "origem": "Madagascar", "resumo": "Succulent with velvety leaves with dark edges, a texture resembling a cat's fur."},
+  "Fenestraria rhopalophylla": {"nome": "Baby Toes", "origem": "Namibia and South Africa", "resumo": "Succulent with cylindrical leaves with translucent tips that let light reach the buried part."},
+  "Sarracenia purpurea": {"nome": "Purple Pitcher Plant", "origem": "North America", "resumo": "Carnivorous plant whose pitcher-shaped leaves trap insects to supplement its nutrition."},
+  "Dionaea muscipula": {"nome": "Venus Flytrap", "origem": "United States (North and South Carolina)", "resumo": "Carnivorous plant famous for its trap-like leaves that snap shut quickly when catching insects."},
+  "Drosera capensis": {"nome": "Cape Sundew", "origem": "South Africa", "resumo": "Carnivorous plant covered in sticky hairs that trap small insects as a source of nutrients."},
+  "Nepenthes alata": {"nome": "Tropical Pitcher Plant", "origem": "Philippines", "resumo": "Carnivorous climbing plant that forms hanging pitchers used to trap insects."},
+  "Vanda coerulea": {"nome": "Blue Vanda Orchid", "origem": "South and Southeast Asia", "resumo": "Rare orchid with bluish flowers, one of the most unusual colors among orchids."},
+  "Oncidium sphacelatum": {"nome": "Dancing Lady Orchid", "origem": "Central and South America", "resumo": "Orchid with abundant small yellow flowers, forming sprays that resemble a golden cascade."},
+  "Miltonia spectabilis": {"nome": "Pansy Orchid", "origem": "Brazil", "resumo": "Native Brazilian orchid whose flowers resemble the pansy flower, hence its common name."},
+  "Epidendrum ibaguense": {"nome": "Star Orchid", "origem": "Central and South America (Brazil)", "resumo": "Hardy terrestrial orchid with star-shaped flowers in shades of orange and red."},
+  "Brassavola nodosa": {"nome": "Lady of the Night Orchid", "origem": "Central and South America", "resumo": "Orchid with white flowers fragrant mainly at night, to attract pollinating moths."},
+  "Zamia furfuracea": {"nome": "Cardboard Palm", "origem": "Mexico", "resumo": "Ancient plant related to conifers, with rigid leaves resembling a small palm."},
+  "Adansonia digitata": {"nome": "Baobab", "origem": "Africa", "resumo": "Tree with an extremely thick trunk, able to store water and live for thousands of years."},
+  "Ceiba pentandra": {"nome": "Kapok Tree", "origem": "South America and Tropical Africa", "resumo": "One of the largest trees in the Amazon rainforest, with huge buttress roots at the base of its trunk."},
+  "Couroupita guianensis": {"nome": "Cannonball Tree", "origem": "Amazon Basin (South America)", "resumo": "Tree whose large, round fruit grows directly on the trunk, with highly fragrant flowers."},
+  "Brownea grandiceps": {"nome": "Rose of Venezuela", "origem": "South America (Amazon region)", "resumo": "Tree with lush red blooms in large globular clusters."},
+  "Cattleya walkeriana": {"nome": "Walker's Cattleya", "origem": "Brazil", "resumo": "Small native Brazilian orchid with large, fragrant flowers, highly prized by collectors."},
+  "Aristolochia gigantea": {"nome": "Giant Pelican Flower", "origem": "South America (Brazil)", "resumo": "Vine with large flowers featuring vein-like patterns, with a scent that attracts pollinating flies."},
+  "Passiflora alata": {"nome": "Winged-Stem Passionflower", "origem": "Brazil", "resumo": "Native vine with showy flowers and fruit sweeter than the common passion fruit."},
+  "Averrhoa bilimbi": {"nome": "Bilimbi", "origem": "Southeast Asia", "resumo": "Fruit tree whose very tart fruit grows directly on the trunk and main branches."},
+  "Theobroma grandiflorum": {"nome": "Cupuaçu", "origem": "Amazon Basin (Brazil)", "resumo": "Tree native to the Amazon whose fruit has fragrant pulp widely used in sweets and juices."},
+  "Euterpe edulis": {"nome": "Juçara Palm", "origem": "Brazil (Atlantic Forest)", "resumo": "Palm native to the Atlantic Forest, a traditional source of heart of palm; now protected due to risk of extinction."},
+  "Genipa americana": {"nome": "Genipap", "origem": "Central and South America", "resumo": "Native tree whose fruit is used to make liqueurs and a dark dye traditional among indigenous peoples."},
+  "Byrsonima crassifolia": {"nome": "Nance", "origem": "Central and South America", "resumo": "Small tree with yellow fruit known for its distinctive flavor and aroma, widely used in regional sweets."},
+  "Malpighia emarginata": {"nome": "Acerola (Barbados Cherry)", "origem": "Central America and the Caribbean", "resumo": "Fruit shrub known for fruit extremely rich in vitamin C."},
+  "Garcinia mangostana": {"nome": "Mangosteen", "origem": "Southeast Asia", "resumo": "Fruit tree whose fruit has a thick purple rind and sweet white pulp, considered an exotic delicacy."},
+  "Litchi chinensis": {"nome": "Lychee", "origem": "Southern China", "resumo": "Fruit tree with small fruit, a rough reddish rind and fragrant, sweet white pulp."},
+  "Nephelium lappaceum": {"nome": "Rambutan", "origem": "Southeast Asia", "resumo": "Fruit tree related to lychee, with fruit covered in characteristic soft 'hairs'."},
+  "Durio zibethinus": {"nome": "Durian", "origem": "Southeast Asia", "resumo": "Fruit tree famous for its fruit's extremely strong odor, despite its flavor being prized by many."},
+  "Artocarpus heterophyllus": {"nome": "Jackfruit", "origem": "Southern India", "resumo": "Tree that produces one of the largest edible fruits in the world, with sweet, fragrant pods."},
+  "Diospyros kaki": {"nome": "Persimmon", "origem": "China", "resumo": "Temperate fruit tree with orange, sweet fruit widely eaten in autumn."},
+  "Fragaria ananassa": {"nome": "Strawberry", "origem": "Hybrid origin (Europe and the Americas)", "resumo": "Low-growing plant that produces one of the most popular red fruits in the world."},
+  "Rubus idaeus": {"nome": "Raspberry", "origem": "Europe and Asia", "resumo": "Fruit shrub with small, delicate red fruit, widely used in desserts."},
+  "Vaccinium corymbosum": {"nome": "Blueberry", "origem": "North America", "resumo": "Fruit shrub whose bluish berries are highly valued for their antioxidant properties."},
+  "Morus nigra": {"nome": "Black Mulberry", "origem": "Southwest Asia", "resumo": "Fruit tree whose dark, juicy fruit resembles small elongated blackberries."},
+  "Passiflora quadrangularis": {"nome": "Giant Granadilla", "origem": "Central and South America", "resumo": "Vine that produces the largest fruit among passionflowers, with sweet, mild pulp."},
+  "Physalis peruviana": {"nome": "Cape Gooseberry", "origem": "South America (Andean region)", "resumo": "Plant that produces small orange fruit wrapped in a lantern-shaped husk."},
+  "Solanum melongena": {"nome": "Eggplant", "origem": "South and Southeast Asia", "resumo": "Vegetable crop with an elongated purple fruit, widely used in roasted and grilled dishes."},
+  "Solanum betaceum": {"nome": "Tamarillo", "origem": "South America (Andean region)", "resumo": "Fruit shrub also known as tree tomato, with oval fruit and tart pulp."},
+  "Capsicum chinense": {"nome": "Scotch Bonnet Pepper", "origem": "Amazon Basin (Brazil)", "resumo": "Highly aromatic pepper species, with varieties ranging from mild to extremely hot."},
+  "Cucurbita maxima": {"nome": "Giant Pumpkin", "origem": "South America (Argentina and Bolivia)", "resumo": "Low-growing plant capable of producing some of the largest fruit in the plant world."},
+  "Vicia faba": {"nome": "Fava Bean", "origem": "North Africa and Southwest Asia", "resumo": "Legume with large pods, cultivated as food for millennia."},
+  "Pisum sativum": {"nome": "Pea", "origem": "Mediterranean region and Middle East", "resumo": "Legume with pods containing small, sweet green seeds."},
+  "Lens culinaris": {"nome": "Lentil", "origem": "Middle East", "resumo": "Legume with small lens-shaped seeds, a staple in many dishes around the world."},
+  "Anethum graveolens": {"nome": "Dill", "origem": "Southern Russia and Southwest Asia", "resumo": "Aromatic herb with fine, feathery leaves, used especially in pickles and fish dishes."},
+  "Foeniculum vulgare": {"nome": "Fennel", "origem": "Mediterranean region", "resumo": "Aromatic plant with a sweet, anise-like flavor, used in teas and seasonings."},
+  "Apium graveolens": {"nome": "Celery", "origem": "Europe and Asia", "resumo": "Vegetable crop with crunchy stalks and a distinctive flavor, widely used in broths and salads."},
+  "Allium schoenoprasum": {"nome": "Chives", "origem": "Europe, Asia and North America", "resumo": "Aromatic herb with thin, hollow leaves and a mild onion flavor, widely used to finish dishes."},
+  "Allium fistulosum": {"nome": "Welsh Onion", "origem": "China", "resumo": "Plant similar to common chives, with thicker leaves and a slightly stronger flavor."},
+  "Brassica rapa": {"nome": "Turnip", "origem": "Europe and Asia", "resumo": "Vegetable crop with a round root and mildly spicy flavor, used in soups and sautés."},
+  "Eruca sativa": {"nome": "Arugula", "origem": "Mediterranean region", "resumo": "Leafy vegetable with a peppery, slightly bitter flavor, widely used in salads."},
+  "Ocimum tenuiflorum": {"nome": "Holy Basil (Tulsi)", "origem": "South Asia (India)", "resumo": "Aromatic plant sacred in Indian culture, traditionally used in teas and rituals."},
+  "Satureja hortensis": {"nome": "Summer Savory", "origem": "Mediterranean region", "resumo": "Aromatic herb with a peppery flavor, traditionally used to season beans and legumes."},
+  "Levisticum officinale": {"nome": "Lovage", "origem": "Southwest Asia", "resumo": "Aromatic plant with a celery-like flavor, used in broths and soups."},
+  "Borago officinalis": {"nome": "Borage", "origem": "Mediterranean region", "resumo": "Plant with edible blue flowers and leaves with a cucumber-like flavor."},
+  "Sechium edule": {"nome": "Chayote", "origem": "Mexico and Central America", "resumo": "Vine whose green, mild-tasting fruit is widely used in sautés and soups in Brazil."},
+  "Luffa aegyptiaca": {"nome": "Loofah", "origem": "South Asia", "resumo": "Vine whose fruit, once ripe and dried, forms a natural fiber used as a bath sponge."},
+  "Syzygium malaccense": {"nome": "Malay Apple", "origem": "Southeast Asia", "resumo": "Fruit tree with bell-shaped red fruit, crunchy and juicy."},
+  "Syzygium cumini": {"nome": "Java Plum (Jambolan)", "origem": "South Asia (India)", "resumo": "Fruit tree with dark purple, astringent fruit, very common along Brazilian sidewalks."},
+  "Tamarindus indica": {"nome": "Tamarind", "origem": "Tropical Africa", "resumo": "Tree whose pods contain a sweet-tart pulp, widely used in sauces and sweets around the world."},
+  "Ziziphus joazeiro": {"nome": "Juazeiro", "origem": "Brazil (Caatinga)", "resumo": "Native tree symbolic of Brazil's Northeast backlands, able to stay green even through long droughts."},
+  "Spondias mombin": {"nome": "Yellow Mombin (Cajá)", "origem": "Central and South America", "resumo": "Fruit tree with tart yellow fruit, widely used in juices and ice cream in Northern and Northeastern Brazil."},
+  "Triticum aestivum": {"nome": "Wheat", "origem": "Middle East (Fertile Crescent)", "resumo": "Cereal of major global importance, the base of flour used in bread and pasta."},
+  "Hordeum vulgare": {"nome": "Barley", "origem": "Middle East", "resumo": "Cereal grown for millennia, used in animal feed and beer production."},
+  "Avena sativa": {"nome": "Oat", "origem": "Europe and Western Asia", "resumo": "Fiber-rich cereal, widely eaten as flakes for breakfast."},
+  "Secale cereale": {"nome": "Rye", "origem": "Southwest Asia", "resumo": "Cold-hardy cereal, widely used to make dark breads."},
+  "Sorghum bicolor": {"nome": "Sorghum", "origem": "Africa", "resumo": "Drought-resistant cereal, used for both human and animal food."},
+  "Chenopodium quinoa": {"nome": "Quinoa", "origem": "South America (Andean region)", "resumo": "Plant whose seeds are a protein-rich pseudocereal, grown for millennia in the Andes."},
+  "Olea europaea": {"nome": "Olive Tree", "origem": "Mediterranean region", "resumo": "Long-lived tree grown for olives and the olive oil extracted from them."},
+  "Juglans regia": {"nome": "Walnut Tree", "origem": "Central Asia and the Balkans", "resumo": "Tree whose fruit, walnuts, are highly prized in cooking and rich in healthy fats."},
+  "Prunus dulcis": {"nome": "Almond Tree", "origem": "Middle East and Central Asia", "resumo": "Tree whose seeds are known as almonds, widely used in cooking and sweets."},
+  "Pistacia vera": {"nome": "Pistachio Tree", "origem": "Central Asia (Iran)", "resumo": "Tree whose seeds, pistachios, have a shell that naturally splits open when ripe."},
+  "Corylus avellana": {"nome": "Hazelnut Tree", "origem": "Europe and Western Asia", "resumo": "Shrub whose fruit, hazelnuts, are widely used in sweets and chocolates."},
+  "Macadamia integrifolia": {"nome": "Macadamia Tree", "origem": "Australia", "resumo": "Tree whose seeds are considered one of the finest and most calorie-rich nuts in the world."},
+  "Carya illinoinensis": {"nome": "Pecan Tree", "origem": "North America", "resumo": "Tree whose fruit, pecans, have a smooth shell and buttery flavor."},
+  "Elettaria cardamomum": {"nome": "Cardamom", "origem": "Southern India", "resumo": "Plant whose aromatic seeds are one of the most valuable spices in the world."},
+  "Myristica fragrans": {"nome": "Nutmeg Tree", "origem": "Maluku Islands (Indonesia)", "resumo": "Tree whose grated seed is an aromatic spice widely used in sauces and sweets."},
+  "Pimenta dioica": {"nome": "Allspice", "origem": "Central America and the Caribbean", "resumo": "Tree whose dried fruit combines the aromas of cinnamon, clove and nutmeg in a single spice."},
+  "Illicium verum": {"nome": "Star Anise", "origem": "Southern China and Vietnam", "resumo": "Tree whose star-shaped dried fruit is widely used in Asian cooking and teas."},
+  "Crocus sativus": {"nome": "Saffron Crocus", "origem": "Southwest Asia", "resumo": "Plant whose flower stigmas form the world's most expensive spice, saffron."},
+  "Panicum maximum": {"nome": "Guinea Grass", "origem": "Africa", "resumo": "Tall grass, widely used as cattle feed in Brazil."},
+  "Cortaderia selloana": {"nome": "Pampas Grass", "origem": "South America (Brazil and Argentina)", "resumo": "Large ornamental grass with tall, showy plumes widely used in landscaping."},
+  "Lemna minor": {"nome": "Common Duckweed", "origem": "Worldwide distribution", "resumo": "One of the smallest flowering plants in the world, floating freely on the surface of ponds and aquariums."},
+  "Hydrocotyle leucocephala": {"nome": "Brazilian Pennywort", "origem": "South America (Brazil)", "resumo": "Aquatic plant with round leaves, widely used in planted aquariums."},
+  "Cabomba caroliniana": {"nome": "Carolina Fanwort", "origem": "North and South America", "resumo": "Aquatic plant with fine, delicate foliage, popular in aquariums for oxygenating the water."},
+  "Rotala rotundifolia": {"nome": "Roundleaf Toothcup", "origem": "South and Southeast Asia", "resumo": "Aquatic plant whose leaves turn reddish under good lighting, popular in fishkeeping."},
+  "Hemerocallis fulva": {"nome": "Daylily", "origem": "East Asia", "resumo": "Plant with large, showy flowers that last only one day, but are continuously renewed."},
+  "Tropaeolum majus": {"nome": "Nasturtium", "origem": "South America (Andean region)", "resumo": "Plant with edible flowers and leaves with a peppery flavor, used both in decor and cooking."},
+  "Hosta plantaginea": {"nome": "Fragrant Plantain Lily", "origem": "China", "resumo": "Plant with lush foliage widely used in shaded gardens, prized more for its leaves than its flowers."},
+  "Athyrium filix-femina": {"nome": "Lady Fern", "origem": "Europe, Asia and the Americas", "resumo": "Fern with delicate, finely cut fronds, common in moist, shaded forests."},
+  "Polypodium vulgare": {"nome": "Common Polypody", "origem": "Europe and Asia", "resumo": "Rustic fern that grows on rocks and trunks, with rhizomes once used in folk medicine."},
+  "Quercus robur": {"nome": "English Oak", "origem": "Europe", "resumo": "Large, long-lived tree, a symbol of strength in many European cultures."},
+  "Betula pendula": {"nome": "Silver Birch", "origem": "Europe and Asia", "resumo": "Tree with a characteristic white bark that peels in thin strips, common in cold climates."},
+  "Salix babylonica": {"nome": "Weeping Willow", "origem": "China", "resumo": "Tree with long, drooping branches, widely used ornamentally along lake shores."},
+  "Magnolia grandiflora": {"nome": "Southern Magnolia", "origem": "Southeastern United States", "resumo": "Tree with large, fragrant white flowers and glossy dark green foliage."},
+  "Tilia cordata": {"nome": "Small-Leaved Lime", "origem": "Europe", "resumo": "Tree with small, fragrant flowers, traditionally used in calming teas."},
+  "Populus nigra": {"nome": "Black Poplar", "origem": "Europe, Asia and North Africa", "resumo": "Fast-growing tree with a narrow canopy, common along avenues and roadsides."},
+  "Platanus acerifolia": {"nome": "London Plane", "origem": "Hybrid origin (Europe)", "resumo": "Large tree widely used along avenues, with bark that peels in characteristic plates."},
+  "Mauritia flexuosa": {"nome": "Buriti Palm", "origem": "Amazon Basin (Brazil)", "resumo": "Native palm of wetland areas, known as the 'tree of life' for its importance to riverside communities."},
+  "Syagrus coronata": {"nome": "Licuri Palm", "origem": "Brazil (Northeast)", "resumo": "Palm native to the northeastern semi-arid region, of great economic and cultural importance to local communities."},
+  "Spondias tuberosa": {"nome": "Umbu", "origem": "Brazil (Caatinga)", "resumo": "Tree native to the semi-arid region, known as the 'sacred tree of the backlands' for storing water in its roots."},
+  "Caesalpinia ferrea": {"nome": "Brazilian Ironwood", "origem": "Brazil", "resumo": "Native tree with extremely hard wood and a trunk with decorative bark that peels in patches."},
+  "Lecythis pisonis": {"nome": "Sapucaia Nut Tree", "origem": "Brazil (Atlantic Forest and Amazon)", "resumo": "Large native tree whose seeds, similar to chestnuts, sit inside woody fruits with a lid."},
+  "Passiflora incarnata": {"nome": "Maypop (Wild Passionflower)", "origem": "North and Central America", "resumo": "Vine whose leaves and flowers are traditionally used in calming teas."},
+  "Valeriana officinalis": {"nome": "Valerian", "origem": "Europe and Asia", "resumo": "Plant whose root is traditionally used in infusions to aid relaxation."},
+  "Hypericum perforatum": {"nome": "St. John's Wort", "origem": "Europe", "resumo": "Plant with small yellow flowers, traditionally associated with emotional well-being in folk medicine."},
+  "Panax ginseng": {"nome": "Ginseng", "origem": "Northeast Asia (Korea and China)", "resumo": "Plant whose root has been traditionally used for millennia in Chinese traditional medicine as a tonic."},
+  "Withania somnifera": {"nome": "Ashwagandha", "origem": "India and North Africa", "resumo": "Shrub whose root is traditionally used in Indian Ayurvedic medicine."},
+  "Aloe ferox": {"nome": "Cape Aloe", "origem": "South Africa", "resumo": "Large succulent with spiny leaves arranged in a rosette, traditionally used in South African folk medicine."},
+  "Agave americana": {"nome": "Century Plant", "origem": "Mexico", "resumo": "Large succulent with rigid, pointed leaves, which blooms only once after many years of life."},
+  "Agave tequilana": {"nome": "Blue Agave", "origem": "Mexico", "resumo": "Succulent whose fermented core is the base for tequila production."},
+  "Furcraea foetida": {"nome": "Mauritius Hemp", "origem": "South America (Brazil and Venezuela)", "resumo": "Plant with long, rigid leaves arranged in a rosette, historically used for fiber extraction."},
+  "Sansevieria cylindrica": {"nome": "Cylindrical Snake Plant", "origem": "Angola", "resumo": "Succulent with rigid, cylindrical leaves that grow fan-like, a relative of the traditional snake plant."},
+  "Gasteria bicolor": {"nome": "Ox Tongue Plant", "origem": "South Africa", "resumo": "Succulent with thick leaves arranged in two opposite rows, with tubular flowers resembling a small stomach."},
+  "Aptenia cordifolia": {"nome": "Heartleaf Ice Plant", "origem": "South Africa", "resumo": "Trailing succulent with heart-shaped leaves and small pinkish-red flowers."},
+  "Delosperma cooperi": {"nome": "Trailing Ice Plant", "origem": "South Africa", "resumo": "Trailing succulent used as ground cover, with bright purplish-pink flowers."},
+  "Carpobrotus edulis": {"nome": "Highway Ice Plant", "origem": "South Africa", "resumo": "Trailing succulent common on coastal dunes, with yellow or pink flowers and edible fruit."},
+  "Sedum spectabile": {"nome": "Showy Stonecrop", "origem": "China and Korea", "resumo": "Succulent with fleshy grayish leaves and large clusters of pink flowers in late summer."},
+  "Sedum acre": {"nome": "Goldmoss Stonecrop", "origem": "Europe", "resumo": "Small trailing succulent traditionally found growing spontaneously on rooftops and walls."},
+  "Echeveria pulvinata": {"nome": "Plush Plant", "origem": "Mexico", "resumo": "Succulent with slightly fuzzy leaves that turn reddish under intense sun."},
+  "Adromischus cristatus": {"nome": "Crested Adromischus", "origem": "South Africa", "resumo": "Small succulent with wavy leaf tips and visible aerial roots along the stem."},
+  "Faucaria tigrina": {"nome": "Tiger Jaws", "origem": "South Africa", "resumo": "Succulent with triangular leaves with soft teeth along the edges, which close like a jaw."},
+  "Pleiospilos nelii": {"nome": "Split Rock", "origem": "South Africa", "resumo": "Succulent that mimics cracked stones, with a yellow or pink flower emerging between its two thick leaves."},
+  "Aporocactus flagelliformis": {"nome": "Rat Tail Cactus", "origem": "Mexico", "resumo": "Cactus with long, thin, trailing stems, grown in hanging pots for its cascading look."},
+  "Cleistocactus strausii": {"nome": "Silver Torch Cactus", "origem": "Bolivia and Argentina", "resumo": "Columnar cactus covered in fine white spines that give it a silvery, silky appearance."},
+  "Cephalocereus senilis": {"nome": "Old Man Cactus", "origem": "Mexico", "resumo": "Columnar cactus covered in long white hairs resembling gray hair, protecting it from intense sun."},
+  "Ariocarpus fissuratus": {"nome": "Living Rock Cactus", "origem": "Mexico and the United States", "resumo": "Extremely slow-growing cactus with a cracked surface that camouflages it among rocks."},
+  "Melocactus zehntneri": {"nome": "Turk's Cap Cactus", "origem": "Brazil (Northeast)", "resumo": "Cactus native to the Caatinga that develops a hairy structure on top (cephalium) in adulthood."},
+  "Pilosocereus gounellei": {"nome": "Xique-Xique Cactus", "origem": "Brazil (Caatinga)", "resumo": "Cactus native to the northeastern semi-arid region, widely used as animal fodder during droughts."},
+  "Cereus hildmannianus": {"nome": "Hedge Cactus", "origem": "South America (Brazil and Argentina)", "resumo": "Branching columnar cactus, common in hedges and native-plant gardens in Brazil."},
+  "Cissus verticillata": {"nome": "Princess Vine", "origem": "Central and South America (Brazil)", "resumo": "Native vine traditionally associated, in folk medicine, with blood sugar control."},
+  "Costus igneus": {"nome": "Insulin Plant", "origem": "India", "resumo": "Plant with spiraled leaves, popularly known for its supposed traditional use related to blood sugar."},
+  "Solanum paniculatum": {"nome": "Jurubeba", "origem": "Brazil", "resumo": "Native shrub with small bitter fruit, traditionally used in digestive infusions."},
+  "Solanum americanum": {"nome": "American Black Nightshade", "origem": "South America", "resumo": "Herbaceous plant with small black fruit, considered a common weed in yards and gardens."},
+  "Sonchus oleraceus": {"nome": "Common Sowthistle", "origem": "Europe and Asia", "resumo": "Herbaceous plant with cut leaves and yellow flowers, common as a weed in cultivated land."},
+  "Emilia sonchifolia": {"nome": "Lilac Tasselflower", "origem": "Tropical Asia", "resumo": "Small herbaceous plant with purplish-pink, brush-shaped flowers, common in farmed areas."},
+  "Euphorbia heterophylla": {"nome": "Wild Poinsettia", "origem": "South America", "resumo": "Herbaceous plant with milky sap, considered one of the most common weeds in Brazilian farmland."},
+  "Cyperus esculentus": {"nome": "Yellow Nutsedge", "origem": "Africa and Southern Europe", "resumo": "Plant with edible underground rhizomes, considered a persistent weed in many regions."},
+  "Eleusine indica": {"nome": "Goosegrass", "origem": "Africa and Asia", "resumo": "Low-growing grass common in yards and sidewalks, with spikelets arranged like fingers of a hand."},
+  "Digitaria sanguinalis": {"nome": "Crabgrass", "origem": "Europe and Asia", "resumo": "Low-growing grass that forms dense clumps, common in lawns and flower beds as an invasive plant."},
+  "Brachiaria decumbens": {"nome": "Signal Grass", "origem": "Africa", "resumo": "Forage grass widely used in cattle pastures in Brazil."},
+  "Pennisetum purpureum": {"nome": "Elephant Grass", "origem": "Tropical Africa", "resumo": "Tall grass, widely grown as forage for its high green mass yield."},
+  "Setaria italica": {"nome": "Foxtail Millet", "origem": "East Asia (China)", "resumo": "Small-seeded cereal widely used in bird feed and as a cover crop."},
+  "Imperata cylindrica": {"nome": "Cogon Grass", "origem": "Tropical regions of Africa and Asia", "resumo": "Rustic grass traditionally used for thatched roofing in rural buildings."},
+  "Typha domingensis": {"nome": "Southern Cattail", "origem": "The Americas", "resumo": "Aquatic plant with long leaves and a characteristic brown cylindrical spike, common in marshes and ponds."},
+  "Alocasia sanderiana": {"nome": "Sander's Alocasia", "origem": "Philippines", "resumo": "Ornamental plant with dark leaves with wavy edges and well-defined silvery veins."},
+  "Aglaonema pictum": {"nome": "Painted Chinese Evergreen", "origem": "Sumatra (Indonesia)", "resumo": "Plant with foliage featuring irregular patterns in light and dark green, highly prized by collectors."},
+  "Homalomena rubescens": {"nome": "Homalomena", "origem": "Southeast Asia", "resumo": "Plant with heart-shaped leaves and a reddish stem, tolerant of low-light indoor environments."},
+  "Anthurium clarinervium": {"nome": "Velvet Cardboard Anthurium", "origem": "Mexico", "resumo": "Ornamental plant with velvety, heart-shaped leaves featuring striking white veins."},
+  "Philodendron erubescens": {"nome": "Blushing Philodendron", "origem": "Colombia", "resumo": "Vine with arrow-shaped leaves featuring reddish tones on the underside and stems."},
+  "Monstera obliqua": {"nome": "Lace Monstera", "origem": "Central and South America", "resumo": "Rare plant with leaves that have more open space than solid tissue, resembling green lace."},
+  "Ctenanthe oppenheimiana": {"nome": "Never Never Plant", "origem": "Brazil", "resumo": "Native plant with striped foliage in light and dark green, with a purplish underside."},
+  "Stromanthe sanguinea": {"nome": "Triostar Stromanthe", "origem": "Brazil", "resumo": "Native plant with colorful foliage in shades of green, white and pink, with an intense red underside."},
+  "Calathea zebrina": {"nome": "Zebra Plant (Calathea)", "origem": "Brazil", "resumo": "Native plant with leaves featuring alternating stripes in shades of green, resembling a zebra pattern."},
+  "Ocimum americanum": {"nome": "Hoary Basil", "origem": "Africa and South Asia", "resumo": "Aromatic herb related to basil, with smaller leaves and a milder citrus scent."},
+  "Pelargonium graveolens": {"nome": "Rose Geranium", "origem": "South Africa", "resumo": "Aromatic plant with cut leaves smelling of roses, used to extract essential oil."},
+  "Chrysanthemum indicum": {"nome": "Indian Chrysanthemum", "origem": "China", "resumo": "Chrysanthemum species with smaller flowers, traditionally used in teas in Chinese culture."},
+  "Rosa gallica": {"nome": "French Rose", "origem": "Europe and Western Asia", "resumo": "One of the oldest cultivated rose species, the historical basis for many modern varieties."},
+  "Camellia sinensis": {"nome": "Tea Plant", "origem": "China and Southeast Asia", "resumo": "Shrub whose leaves, processed in different ways, produce green tea, black tea and other tea types."},
+  "Aloe maculata": {"nome": "Soap Aloe", "origem": "South Africa", "resumo": "Succulent with light spots on leaves arranged in a rosette, hardy and easy to grow."},
+  "Kalanchoe delagoensis": {"nome": "Chandelier Plant", "origem": "Madagascar", "resumo": "Succulent with cylindrical leaves that produce tiny plantlets at their tips, forming new plants."},
+  "Portulaca umbraticola": {"nome": "Wingpod Purslane", "origem": "Central and South America", "resumo": "Trailing succulent with colorful blooms, a close relative of common moss rose."},
+  "Ipomoea carnea": {"nome": "Bush Morning Glory", "origem": "South America (Brazil)", "resumo": "Native shrub common along roadsides and vacant lots, with pink trumpet-shaped flowers."},
+  "Sida rhombifolia": {"nome": "Arrowleaf Sida", "origem": "Tropical regions of the Americas", "resumo": "Herbaceous plant common as a weed in yards, traditionally used in folk infusions."},
+  "Waltheria indica": {"nome": "Sleepy Morning", "origem": "Tropical regions of the world", "resumo": "Small shrub with yellow flowers, common in vacant lots and roadsides in Brazil."},
+  "Malva sylvestris": {"nome": "Common Mallow", "origem": "Europe and North Africa", "resumo": "Plant with light purple flowers, traditionally used in folk gargles and teas."},
+  "Plantago major": {"nome": "Broadleaf Plantain", "origem": "Europe and Asia", "resumo": "Low-growing plant with broad, veined leaves, common in lawns and traditionally used in folk medicine."},
+  "Hibiscus sabdariffa": {"nome": "Roselle", "origem": "West Africa", "resumo": "Plant whose red, tart calyces are used to make teas, juices and jams."},
+  "Abelmoschus esculentus": {"nome": "Okra", "origem": "Africa", "resumo": "Vegetable crop with elongated, mucilaginous pods, widely used in traditional Brazilian dishes."},
+  "Talinum paniculatum": {"nome": "Jewels of Opar", "origem": "Central and South America", "resumo": "Plant with edible succulent leaves and small pink flowers, common in Brazilian backyards."},
+  "Boerhavia diffusa": {"nome": "Red Spiderling", "origem": "Tropical regions of the world", "resumo": "Trailing plant common in vacant lots, traditionally used in folk medicine."},
+  "Mimosa pudica": {"nome": "Sensitive Plant", "origem": "Central and South America", "resumo": "Plant known for quickly folding its leaves when touched, a natural defense mechanism."},
+  "Senna occidentalis": {"nome": "Coffee Senna", "origem": "Tropical America", "resumo": "Shrub common in vacant lots, with seeds sometimes used as a coffee substitute."},
+  "Crotalaria juncea": {"nome": "Sunn Hemp", "origem": "South Asia (India)", "resumo": "Plant used as green manure in agriculture, recognized for its pods that rattle when dry."},
+  "Calotropis procera": {"nome": "Sodom's Apple (Silk Cotton)", "origem": "Africa and Western Asia", "resumo": "Shrub with light purple flowers and fruit that release seeds with silky threads when ripe."},
+  "Leucaena leucocephala": {"nome": "Lead Tree", "origem": "Central America (Mexico)", "resumo": "Fast-growing tree used in agroforestry systems and as cattle fodder."},
+  "Gliricidia sepium": {"nome": "Gliricidia", "origem": "Central America", "resumo": "Tree with pink blooms widely used as a living hedge and green manure on rural properties."},
+  "Schizolobium parahyba": {"nome": "Brazilian Fern Tree", "origem": "Brazil (Atlantic Forest)", "resumo": "Fast-growing native tree with a wide canopy, with showy yellow flowers in spring."},
+  "Enterolobium contortisiliquum": {"nome": "Ear Pod Tree", "origem": "South America (Brazil)", "resumo": "Large native tree known for its ear-shaped pods, also called monkey's ear tree."},
+  "Aspidosperma polyneuron": {"nome": "Peroba Rosa", "origem": "Brazil", "resumo": "Native tree with fine, reddish timber, historically heavily harvested for construction."},
+  "Astronium fraxinifolium": {"nome": "Goncalo Alves", "origem": "Brazil", "resumo": "Native tree with hard, durable wood, with bark that peels in irregular plates."},
+  "Zeyheria tuberculosa": {"nome": "Fuzzy Trumpet Tree", "origem": "Brazil (Atlantic Forest)", "resumo": "Native tree whose fruit has a characteristic fuzzy texture, with yellow flowers."},
+  "Tabebuia roseoalba": {"nome": "White Trumpet Tree", "origem": "Brazil and Bolivia", "resumo": "Native tree with abundant white blooms, widely used in urban landscaping."},
+  "Cybistax antisyphilitica": {"nome": "Caroba", "origem": "Brazil", "resumo": "Native Cerrado tree with purplish-blue flowers, traditionally mentioned in folk medicine."},
+  "Pseudobombax grandiflorum": {"nome": "Embiruçu", "origem": "Brazil (Atlantic Forest)", "resumo": "Native tree with a greenish trunk and large flowers that open at night, pollinated by bats."},
+  "Cariniana estrellensis": {"nome": "White Jequitiba", "origem": "Brazil (Atlantic Forest)", "resumo": "Large native tree, related to the pink jequitiba, with characteristic bark that peels off in plates."},
+  "Hymenaea stigonocarpa": {"nome": "Cerrado Jatoba", "origem": "Brazil (Cerrado)", "resumo": "Native tree with twisted trunks and thick bark, adapted to fire and drought in the Cerrado."},
+  "Qualea grandiflora": {"nome": "Pau-Terra", "origem": "Brazil (Cerrado)", "resumo": "Native Cerrado tree with thick, furrowed bark, adapted to poor soils and frequent fires."},
+  "Kielmeyera coriacea": {"nome": "Cerrado Pau-Santo", "origem": "Brazil (Cerrado)", "resumo": "Small native tree with leathery leaves resistant to the Cerrado's dry climate."},
+  "Curatella americana": {"nome": "Sandpaper Tree", "origem": "South America (Cerrado)", "resumo": "Native Cerrado tree with rough leaves, historically used to sand wood and tools."},
+  "Dipteryx alata": {"nome": "Baru Tree", "origem": "Brazil (Cerrado)", "resumo": "Native Cerrado tree whose nuts are highly prized in regional cooking."},
+  "Anacardium humile": {"nome": "Cerrado Cashew", "origem": "Brazil (Cerrado)", "resumo": "Low-growing native plant related to the cashew tree, with small, sweet fruit typical of the Cerrado."},
+  "Solanum sessiliflorum": {"nome": "Cocona", "origem": "Amazon Basin (Brazil)", "resumo": "Plant native to the Amazon whose yellow fruit is used in regional juices and preserves."},
+  "Laelia purpurata": {"nome": "Purple Laelia Orchid", "origem": "Brazil (Santa Catarina)", "resumo": "Native orchid considered a symbol of the state of Santa Catarina, with large flowers and an intense purple lip."},
+  "Sophronitis coccinea": {"nome": "Scarlet Sophronitis Orchid", "origem": "Brazil (Atlantic Forest)", "resumo": "Small native orchid with vibrant red-orange flowers, highly prized by collectors."},
+  "Encyclia patens": {"nome": "Encyclia Orchid", "origem": "Brazil", "resumo": "Native orchid with fragrant flowers in shades of green and purple, common on Atlantic Forest trees."},
+  "Cattleya intermedia": {"nome": "Cattleya Intermedia Orchid", "origem": "Brazil (Southern and Southeastern coast)", "resumo": "Native Brazilian orchid with pink flowers and a wavy lip, common in coastal regions."},
+};
+
 let currentImageBase64 = null;
+let currentLang = localStorage.getItem('clickflora_lang') || (navigator.language && navigator.language.startsWith('en') ? 'en' : 'pt');
+
+const I18N = {
+  pt: {
+    eyebrow_home: 'Olá, sou a Flora',
+    hero_title: 'Aponte a câmera<br>e descubra a planta',
+    hero_desc: 'Tire uma foto e eu te conto o nome, a origem e curiosidades de qualquer planta que encontrar.',
+    btn_identify_hero: '📷 Identificar planta',
+    how_it_works: 'Como funciona',
+    step1_title: '1. Fotografe',
+    step1_desc: 'Folhas, flores ou a planta inteira — de perto funciona melhor.',
+    step2_title: '2. Identificação',
+    step2_desc: 'Reconheço a espécie automaticamente em segundos.',
+    step3_title: '3. Conheça',
+    step3_desc: 'Veja nome, origem e uma curiosidade sobre ela.',
+    new_id: 'Nova identificação',
+    capture_placeholder: 'Tire uma foto nítida da planta, de preferência com boa luz',
+    btn_camera: '📷 Câmera',
+    btn_gallery: '🖼️ Galeria',
+    btn_identify_this: 'Identificar esta planta',
+    result_photo_label: 'foto enviada',
+    identifying: 'Identificando sua planta...',
+    identification_label: 'Identificação',
+    placeholder_name: '[Nome da planta]',
+    placeholder_sci: '[Nome científico]',
+    error_default: 'Não consegui identificar essa planta.',
+    error_hint: 'Tente outra foto, de preferência com boa luz e mais de perto.',
+    error_connection: 'Erro de conexão. Tente novamente.',
+    btn_identify_other: 'Identificar outra planta',
+    nav_home: 'Início',
+    nav_identify: 'Identificar',
+    fallback_plant_name: 'Planta identificada',
+  },
+  en: {
+    eyebrow_home: "Hi, I'm Flora",
+    hero_title: 'Point your camera<br>and discover the plant',
+    hero_desc: "Take a photo and I'll tell you the name, origin and fun facts about any plant you find.",
+    btn_identify_hero: '📷 Identify plant',
+    how_it_works: 'How it works',
+    step1_title: '1. Photograph',
+    step1_desc: 'Leaves, flowers or the whole plant — close-up works best.',
+    step2_title: '2. Identification',
+    step2_desc: 'I recognize the species automatically in seconds.',
+    step3_title: '3. Learn',
+    step3_desc: 'See the name, origin and a fun fact about it.',
+    new_id: 'New identification',
+    capture_placeholder: 'Take a clear photo of the plant, preferably in good light',
+    btn_camera: '📷 Camera',
+    btn_gallery: '🖼️ Gallery',
+    btn_identify_this: 'Identify this plant',
+    result_photo_label: 'uploaded photo',
+    identifying: 'Identifying your plant...',
+    identification_label: 'Identification',
+    placeholder_name: '[Plant name]',
+    placeholder_sci: '[Scientific name]',
+    error_default: "I couldn't identify this plant.",
+    error_hint: 'Try another photo, preferably with good light and closer up.',
+    error_connection: 'Connection error. Please try again.',
+    btn_identify_other: 'Identify another plant',
+    nav_home: 'Home',
+    nav_identify: 'Identify',
+    fallback_plant_name: 'Plant identified',
+  }
+};
+
+function applyLanguage(lang){
+  currentLang = lang;
+  localStorage.setItem('clickflora_lang', lang);
+  const t = I18N[lang];
+
+  document.querySelector('#screen-home .eyebrow').textContent = t.eyebrow_home;
+  document.querySelector('#screen-home h1').innerHTML = t.hero_title;
+  document.querySelector('#screen-home .hero p').textContent = t.hero_desc;
+  document.querySelector('#screen-home .btn-primary').textContent = t.btn_identify_hero;
+  document.querySelector('#screen-home .section-label').textContent = t.how_it_works;
+
+  const tipCards = document.querySelectorAll('#screen-home .tip-card .txt');
+  tipCards[0].querySelector('strong').textContent = t.step1_title;
+  tipCards[0].querySelector('span').textContent = t.step1_desc;
+  tipCards[1].querySelector('strong').textContent = t.step2_title;
+  tipCards[1].querySelector('span').textContent = t.step2_desc;
+  tipCards[2].querySelector('strong').textContent = t.step3_title;
+  tipCards[2].querySelector('span').textContent = t.step3_desc;
+
+  document.querySelector('#screen-upload .section-label').textContent = t.new_id;
+  document.querySelector('#screen-upload .placeholder-txt').textContent = t.capture_placeholder;
+  const captureBtns = document.querySelectorAll('#screen-upload .btn-secondary');
+  captureBtns[0].textContent = t.btn_camera;
+  captureBtns[1].textContent = t.btn_gallery;
+  document.getElementById('identifyBtn').textContent = t.btn_identify_this;
+
+  if(document.getElementById('resultPhoto').textContent === I18N.pt.result_photo_label || document.getElementById('resultPhoto').textContent === I18N.en.result_photo_label){
+    document.getElementById('resultPhoto').textContent = t.result_photo_label;
+  }
+  document.querySelector('#loadingState div:last-child').textContent = t.identifying;
+  document.querySelector('#screen-resultado .specimen-card .eyebrow').textContent = t.identification_label;
+
+  const errHint = document.querySelector('#errorState div:last-child');
+  if(errHint) errHint.textContent = t.error_hint;
+
+  document.querySelector('#screen-resultado .btn-full.ready').textContent = t.btn_identify_other;
+
+  document.querySelector('.navbtn[data-screen="home"]').lastChild.textContent = t.nav_home;
+  document.querySelector('.navbtn[data-screen="upload"]').lastChild.textContent = t.nav_identify;
+
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+}
 
 function goTo(screen){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1034,29 +1712,30 @@ async function identifyPlant(){
     const response = await fetch('/api/plantnet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageBase64: currentImageBase64 })
+      body: JSON.stringify({ imageBase64: currentImageBase64, lang: currentLang })
     });
     const data = await response.json();
 
     document.getElementById('loadingState').style.display = 'none';
 
     if(!response.ok || !data.found){
-      document.getElementById('errorText').textContent = data.error || 'Não consegui identificar essa planta.';
+      document.getElementById('errorText').textContent = data.error || I18N[currentLang].error_default;
       document.getElementById('errorState').style.display = 'block';
       return;
     }
 
-    const dbEntryForName = data.scientificName ? PLANTS_DB[data.scientificName] : null;
+    const activeDb = currentLang === 'en' ? PLANTS_DB_EN : PLANTS_DB;
+    const dbEntryForName = data.scientificName ? activeDb[data.scientificName] : null;
     const commonName = (data.commonNames && data.commonNames.length > 0)
       ? data.commonNames.slice(0, 3).join(', ')
-      : (dbEntryForName?.nome || data.genus || 'Planta identificada');
+      : (dbEntryForName?.nome || data.genus || I18N[currentLang].fallback_plant_name);
     document.getElementById('resultName').textContent = commonName;
     document.getElementById('resultSci').textContent = data.scientificName || '';
 
     const metaEl = document.getElementById('resultMeta');
     metaEl.innerHTML = '';
 
-    const dbEntry = data.scientificName ? PLANTS_DB[data.scientificName] : null;
+    const dbEntry = data.scientificName ? activeDb[data.scientificName] : null;
 
     if(dbEntry && dbEntry.origem){
       metaEl.innerHTML += '<div class="meta-pill">🌍 ' + dbEntry.origem + '</div>';
@@ -1076,7 +1755,7 @@ async function identifyPlant(){
 
   } catch(err){
     document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('errorText').textContent = 'Erro de conexão. Tente novamente.';
+    document.getElementById('errorText').textContent = I18N[currentLang].error_connection;
     document.getElementById('errorState').style.display = 'block';
   }
 }
@@ -1091,6 +1770,9 @@ function resetFlow(){
   document.getElementById('identifyBtn').classList.remove('ready');
   goTo('upload');
 }
+
+document.getElementById('resultPhoto').textContent = I18N[currentLang].result_photo_label;
+applyLanguage(currentLang);
 </script>
 </body>
 </html>
