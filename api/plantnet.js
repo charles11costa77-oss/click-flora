@@ -13,10 +13,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { imageBase64 } = req.body;
+    const { imageBase64, lang } = req.body;
     if (!imageBase64) {
       return res.status(400).json({ error: 'Imagem não enviada' });
     }
+    const apiLang = lang === 'en' ? 'en' : 'pt';
 
     const matches = imageBase64.match(/^data:(image\/\w+);base64,(.+)$/);
     if (!matches) {
@@ -43,7 +44,7 @@ export default async function handler(req, res) {
 
     const body = Buffer.concat(formParts);
 
-    const plantnetUrl = `https://my-api.plantnet.org/v2/identify/all?api-key=${apiKey}&lang=pt`;
+    const plantnetUrl = `https://my-api.plantnet.org/v2/identify/all?api-key=${apiKey}&lang=${apiLang}`;
 
     const response = await fetch(plantnetUrl, {
       method: 'POST',
