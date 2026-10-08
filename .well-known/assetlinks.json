@@ -1,8 +1,10 @@
 [{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.cs6.clickflora",
-        "sha256_cert_fingerprints": ["B2:0E:6D:68:C9:D7:59:4C:E9:27:F7:6E:3A:E7:B9:8A:EC:80:E5:9F:5E:45:D5:48:CC:58:1E:DF:43:AC:60:18"]
-      }
-    }]
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.cs6.clickflora",
+    "sha256_cert_fingerprints": [
+      "4D:3D:8B:FD:81:59:36:89:E1:73:63:1E:09:47:F9:53:47:D6:6D:16:CC:98:75:5B:08:E3:FF:07:EB:1C:AE:53"
+    ]
+  }
+}]
